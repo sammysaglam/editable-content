@@ -1,0 +1,73 @@
+.side-toolbar {
+	position    : absolute;
+	left        : -25px;
+	font-size   : 28px;
+	font-family : "Times New Roman";
+	font-weight : bold;
+	color       : #AAAAAA;
+	cursor      : copy;
+
+	::after {
+		left : 20px;
+	}
+
+	.block-settings {
+		position    : absolute;
+		top         : -41px;
+		left        : -12px;
+		white-space : nowrap;
+
+		li {
+			padding : 12px 10px 8px 10px;
+		}
+
+		li.has-image {
+
+		}
+	}
+
+	&:hover > .expand-icon {
+		opacity : 0.6;
+	}
+
+	.media-buttons {
+		position : absolute;
+		left     : -2px;
+		top      : 0;
+
+		span {
+			position   : absolute;
+			top        : 0px;
+			transition : top 0.1s, opacity 0.1s;
+			opacity    : 0;
+
+			img {
+				width : 22px;
+			}
+		}
+
+		&.expanded {
+
+			span {
+				opacity : 1;
+
+				&:hover img {
+					opacity:0.3 ;
+				}
+			}
+
+			$height : 32px;
+			span:nth-child(1) {
+				top : $height*1;
+			}
+			span:nth-child(2) {
+				top : $height*2;
+			}
+			span:nth-child(3) {
+				top : $height*3;
+			}
+
+		}
+	}
+
+}

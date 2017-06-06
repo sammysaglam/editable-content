@@ -1,0 +1,25 @@
+.toolbar {
+	position      : absolute;
+	background    : #FFFFFF;
+	z-index       : 2;
+	box-shadow    : 0 0 15px -4px #BBBBBB;
+	border-radius : 5px 5px 0 0;
+	color         : #000000;
+
+	::after {
+		content      : "";
+		position     : absolute;
+		bottom       : -5px;
+		left         : 50%;
+		margin-left  : -5px;
+		border-top   : 5px solid #444444;
+		border-right : 5px solid transparent;
+		border-left  : 5px solid transparent;
+	}
+
+	@import './ToolbarIcon';
+
+}
+@import './InlineToolbar';
+@import './LinkToolbar';
+@import './SideToolbar';

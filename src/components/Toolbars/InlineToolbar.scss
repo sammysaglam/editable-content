@@ -1,0 +1,25 @@
+.inline-toolbar {
+	font-size : 24px;
+
+	transform   : scale(0);
+	transition: transform 0.15s cubic-bezier(0.3,1.2,0.2,1);
+
+	.bold {
+		font-family : Arial;
+	}
+
+	.italic {
+		font-style  : italic;
+		font-family : "Times New Roman";
+	}
+
+	.underline {
+		text-decoration : underline;
+		font-family : Arial;
+	}
+
+	.strikethrough {
+		text-decoration : line-through;
+	}
+
+}
