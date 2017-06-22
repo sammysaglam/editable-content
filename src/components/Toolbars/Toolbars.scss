@@ -1,10 +1,15 @@
 .toolbar {
+	all: unset;
 	position      : absolute;
 	background    : #FFFFFF;
 	z-index       : 2;
 	box-shadow    : 0 0 15px -4px #BBBBBB;
 	border-radius : 5px 5px 0 0;
 	color         : #000000;
+
+	img {
+		border : none;
+	}
 
 	::after {
 		content      : "";
@@ -20,6 +25,7 @@
 	@import './ToolbarIcon';
 
 }
+
 @import './InlineToolbar';
 @import './LinkToolbar';
 @import './SideToolbar';

@@ -51,10 +51,8 @@ export default class EditableContent extends React.Component {
 				tempElement.innerHTML = block.text;
 				block.text            = tempElement.value;
 
-				// make sure code-blocks dont have a "depth" property (for some reason, Draft hangs when they do)
-				if ( block.type === 'code-block' ) {
-					delete block.depth;
-				}
+				// make sure depth properties are integers, or else Draft hangs
+				block.depth = parseInt(block.depth);
 			});
 
 			// create editorState
@@ -123,7 +121,7 @@ export default class EditableContent extends React.Component {
 		});
 
 		if ( this.props.saveFn && newHtmlContent !== oldHtmlContent ) {
-			this.props.saveFn(newHtmlContent,rawContent);
+			this.props.saveFn(newHtmlContent , rawContent);
 		}
 
 		setTimeout(this.updateSelection , 0);
@@ -214,8 +212,38 @@ export default class EditableContent extends React.Component {
 	}
 
 	onTab(e) {
-		const maxDepth = 4;
-		this.onChange(RichUtils.onTab(e , this.state.editorState , maxDepth));
+
+		const {editorState}  = this.state;
+		const contentState   = editorState.getCurrentContent();
+		const selectionState = editorState.getSelection();
+		const selectionKey   = selectionState.getStartKey();
+		const currentBlock   = contentState.getBlockForKey(selectionKey);
+		const blockType      = currentBlock.getType();
+
+		if ( blockType === 'ordered-list-item' || blockType === 'unordered-list-item' ) {
+			const maxDepth = 9;
+			this.onChange(RichUtils.onTab(e , this.state.editorState , maxDepth));
+
+		} else {
+
+			const rangeRemoved      = Modifier.removeRange(
+				contentState ,
+				selectionState ,
+				'backward'
+			);
+			const rangeRemovedState = EditorState.push(editorState , rangeRemoved , 'selection-removed');
+
+			const tabAdded = Modifier.insertText(
+				rangeRemovedState.getCurrentContent() ,
+				rangeRemovedState.getSelection() ,
+				"   "
+			);
+
+			const newState = EditorState.push(editorState , tabAdded , 'tab-added');
+			this.onChange(newState);
+
+			e.preventDefault();
+		}
 	}
 
 	toggleStyle(id) {
@@ -359,11 +387,26 @@ export default class EditableContent extends React.Component {
 	}
 
 	render() {
-		const {editorState , selectedBlock , selectionRange} = this.state;
+		const {editorState , selectedBlock} = this.state;
+		const editor             = this.refs.container;
 
+		// get selectedBlock, and make sure it is the child of the editor
 		let sideToolbarOffsetTop = 0;
-		if ( selectedBlock ) {
-			const editor       = this.refs.container;
+		if ( selectedBlock && ((parent , child) => {
+
+				var node = child.parentNode;
+				while ( node != null ) {
+					if ( node == parent ) {
+						return true;
+					}
+					node = node.parentNode;
+				}
+				return false;
+
+			})(editor , selectedBlock)
+		) {
+
+			// calculate sideToolbar coordinates
 			const editorBounds = editor.getBoundingClientRect();
 			const blockBounds  = selectedBlock.getBoundingClientRect();
 

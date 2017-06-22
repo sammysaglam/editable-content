@@ -1,7 +1,11 @@
-a {
-	cursor : pointer;
+.DraftEditor-root {
 
-	&:hover {
-		background-color : #FFB9B7;
+	a {
+		cursor : pointer;
+
+		&:hover {
+			background-color : #FFB9B7;
+		}
 	}
+
 }

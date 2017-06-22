@@ -36,17 +36,17 @@ export default class InlineToolbar extends React.Component {
 
 		const selectionState = editorState.getSelection();
 		const selectionKey   = selectionState.getStartKey();
-		const contentstate   = editorState.getCurrentContent();
+		const contentState   = editorState.getCurrentContent();
 
 		// get the block where the cursor is
-		const block = contentstate.getBlockForKey(selectionKey);
+		const block = contentState.getBlockForKey(selectionKey);
 
 		// get the entity where the cursor is
 		const entityKey = block.getEntityAt(selectionState.getStartOffset());
 
 		let entityType = '';
 		if ( entityKey ) {
-			const entityInstance = contentstate.getEntity(entityKey);
+			const entityInstance = contentState.getEntity(entityKey);
 			entityType           = entityInstance.getType()
 		}
 

@@ -8,8 +8,13 @@ const plugins = [
 	new webpack.optimize.CommonsChunkPlugin({
 		name:"react_draft_jquery" ,
 		filename:"../../../views/libs/react_draft_jquery_bundle.js"
-	}) ,
-	new ExtractTextPlugin("[name].css")
+	}),
+	new ExtractTextPlugin({
+		filename:function(getPath) {
+			console.log(getPath("[name].css")) ;
+			return getPath("[name].css").replace(/theme/,'themes/theme').replace(/-/,'_') ;
+		}
+	})
 ];
 if ( isProduction ) {
 	plugins.push(new UglifyJSPlugin({
@@ -21,7 +26,8 @@ if ( isProduction ) {
 module.exports = {
 	entry:{
 		react_draft_jquery:["react" , "react-dom" , "draft-js" , "draft-convert" , "jquery"] ,
-		editable_content:['./src/entry.js' , './src/entry.scss']
+		editable_content:['./src/entry.js' , './src/entry.scss'] ,
+		'theme-1':['./src/themes/theme-1.scss']
 	} ,
 	output:{
 		path:path.resolve('../') ,
