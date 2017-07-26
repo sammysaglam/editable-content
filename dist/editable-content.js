@@ -1,4 +1,4 @@
-var AxeEditableContent =
+var EditableContent =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};

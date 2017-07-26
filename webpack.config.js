@@ -34,7 +34,7 @@ const outputFilename = !isProduction ? '[name].js' : '[name].min.js';
 
 module.exports = {
 	entry    :{
-		'axe-editable-content':[
+		'editable-content':[
 			'./src/EditableContent.js' ,
 			'./src/EditableContent.scss' ,
 			...(themes.map(themeName => './src/themes/' + themeName + '.scss'))
@@ -44,7 +44,7 @@ module.exports = {
 		path         :path.resolve('./dist') ,
 		filename     :outputFilename ,
 		libraryTarget:'var' ,
-		library      :'AxeEditableContent'
+		library      :'EditableContent'
 	} ,
 	externals:{
 		'react'        :'react' ,
