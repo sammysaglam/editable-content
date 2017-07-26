@@ -24,15 +24,13 @@ const plugins = [
 	extractCSS
 ];
 
-let outputFilename = '[name].js';
 if ( isProduction ) {
 	plugins.push(new UglifyJSPlugin({
 		compress:true ,
 		comments:false
 	}));
-
-	outputFilename = '[name].min.js';
 }
+const outputFilename = !isProduction ? '[name].js' : '[name].min.js';
 
 module.exports = {
 	entry    :{
