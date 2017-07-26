@@ -3,13 +3,13 @@ import $ from 'jquery' ;
 import {Editor , EditorState , ContentState , Modifier , RichUtils , AtomicBlockUtils , CompositeDecorator , convertToRaw , convertFromRaw , convertFromHTML} from 'draft-js';
 import {convertToHTML} from 'draft-convert';
 
-import Link from './../Entities/Link.js' ;
-import Image from './../Entities/Image.js' ;
-import LinkToolbar from "../Toolbars/LinkToolbar";
-import InlineToolbar from './../Toolbars/InlineToolbar' ;
-import SideToolbar from './../Toolbars/SideToolbar' ;
+import Link from './components/Entities/Link' ;
+import Image from './components/Entities/Image' ;
+import LinkToolbar from "./components/Toolbars/LinkToolbar";
+import InlineToolbar from './components/Toolbars/InlineToolbar' ;
+import SideToolbar from './components/Toolbars/SideToolbar' ;
 
-import {utils} from '../../utils/entry.js';
+import {utils} from './utils/entry.js';
 
 export default class EditableContent extends React.Component {
 
@@ -132,6 +132,10 @@ export default class EditableContent extends React.Component {
 			styleToHTML: (style) => {
 				if ( style === 'BOLD' ) {
 					return <strong />;
+				} else if ( style === 'UNDERLINE' ) {
+					return <span style={{textDecoration:'underline'}}/>;
+				} else if ( style === 'STRIKETHROUGH' ) {
+					return <span style={{textDecoration:'line-through'}}/>;
 				}
 			} ,
 			blockToHTML: (block) => {
@@ -156,7 +160,7 @@ export default class EditableContent extends React.Component {
 			entityToHTML:(entity , originalText) => {
 
 				if ( entity.type === 'LINK' ) {
-					return <a href={entity.data.url} target={entity.data.target}>{originalText}</a>;
+					return `<a href="${entity.data.url}" target="${entity.data.target}">${originalText}</a>`;
 
 				} else if ( entity.type === 'IMAGE' ) {
 
@@ -388,7 +392,7 @@ export default class EditableContent extends React.Component {
 
 	render() {
 		const {editorState , selectedBlock} = this.state;
-		const editor             = this.refs.container;
+		const editor                        = this.refs.container;
 
 		// get selectedBlock, and make sure it is the child of the editor
 		let sideToolbarOffsetTop = 0;

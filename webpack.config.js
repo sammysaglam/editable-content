@@ -3,42 +3,64 @@ const webpack = require('webpack');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const isProduction = process.argv.indexOf('-p') !== -1;
+const glob = require("glob");
+
+const themes = glob.sync('src/themes/*.scss').map(fileName => fileName.replace(/(.+\/)|(.scss)/g,''));
+
+const themeExtractors = themes.map(themeName => new ExtractTextPlugin({
+	filename:function(getPath) {
+		return getPath("themes/" + themeName + (isProduction ? '.min' : '') + ".css");
+	}
+}));
+
+const extractCSS = new ExtractTextPlugin({
+	filename:function(getPath) {
+		return getPath("[name]" + (isProduction ? '.min' : '') + ".css");
+	}
+});
 
 const plugins = [
-	new webpack.optimize.CommonsChunkPlugin({
-		name:"react_draft_jquery" ,
-		filename:"../../../views/libs/react_draft_jquery_bundle.js"
-	}),
-	new ExtractTextPlugin({
-		filename:function(getPath) {
-			console.log(getPath("[name].css")) ;
-			return getPath("[name].css").replace(/theme/,'themes/theme').replace(/-/,'_') ;
-		}
-	})
+	...themeExtractors ,
+	extractCSS
 ];
+
+let outputFilename = '[name].js';
 if ( isProduction ) {
 	plugins.push(new UglifyJSPlugin({
 		compress:true ,
 		comments:false
 	}));
+
+	outputFilename = '[name].min.js';
 }
 
 module.exports = {
-	entry:{
-		react_draft_jquery:["react" , "react-dom" , "draft-js" , "draft-convert" , "jquery"] ,
-		editable_content:['./src/entry.js' , './src/entry.scss'] ,
-		'theme-1':['./src/themes/theme-1.scss']
+	entry    :{
+		'axe-editable-content':[
+			'./src/EditableContent.js' ,
+			'./src/EditableContent.scss' ,
+			...(themes.map(themeName => './src/themes/' + themeName + '.scss'))
+		]
 	} ,
-	output:{
-		path:path.resolve('../') ,
-		filename:'[name].js'
+	output   :{
+		path         :path.resolve('./dist') ,
+		filename     :outputFilename ,
+		libraryTarget:'var' ,
+		library      :'AxeEditableContent'
 	} ,
-	module:{
+	externals:{
+		'react'        :'react' ,
+		'draft-js'     :'draft-js' ,
+		'draft-convert':'draft-convert' ,
+		'jquery'       :'jquery'
+	} ,
+	module   :{
 		rules:[
-			{test:/\.(jpg|png|svg)$/,loader:'url-loader'},
-			{test:/\.(sass|scss)$/ , loader:ExtractTextPlugin.extract(['css-loader' , 'sass-loader']) , exclude:/node_modules/} ,
+			{test:/\.(jpg|png|svg)$/ , loader:'url-loader'} ,
+			...(themes.map((themeName , index) => ({test:new RegExp(themeName + "\.scss$") , loader:themeExtractors[index].extract(['css-loader' , 'sass-loader'])}))) ,
+			{test:/EditableContent\.scss$/ , loader:extractCSS.extract(['css-loader' , 'sass-loader'])} ,
 			{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/}
 		]
 	} ,
-	plugins:plugins
+	plugins  :plugins
 }

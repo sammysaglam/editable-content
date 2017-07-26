@@ -1,3 +1,5 @@
+@import '~draft-js/dist/Draft.css';
+
 .DraftEditor-root {
 	outline  : 1px dotted #CC806B;
 	overflow : auto;
@@ -32,7 +34,7 @@
 		}
 	}
 
-	@import '../Entities/Link';
-	@import '../Entities/Image';
-	@import '../Toolbars/Toolbars';
+	@import 'components/Entities/Link';
+	@import 'components/Entities/Image';
+	@import 'components/Toolbars/Toolbars';
 }
