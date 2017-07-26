@@ -71,7 +71,7 @@ var EditableContent =
 /* 0 */
 /***/ (function(module, exports) {
 
-module.exports = react;
+module.exports = React;
 
 /***/ }),
 /* 1 */
@@ -140,7 +140,7 @@ exports.default = ToolbarIcon;
 /* 2 */
 /***/ (function(module, exports) {
 
-module.exports = draft-js;
+module.exports = Draft;
 
 /***/ }),
 /* 3 */
@@ -161,13 +161,13 @@ var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _jquery = __webpack_require__(26);
+var _jquery = __webpack_require__(25);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
 var _draftJs = __webpack_require__(2);
 
-var _draftConvert = __webpack_require__(25);
+var _draftConvert = __webpack_require__(26);
 
 var _Link = __webpack_require__(7);
 
@@ -1699,13 +1699,13 @@ module.exports = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy
 /* 25 */
 /***/ (function(module, exports) {
 
-module.exports = draft-convert;
+module.exports = $;
 
 /***/ }),
 /* 26 */
 /***/ (function(module, exports) {
 
-module.exports = jquery;
+module.exports = DraftConvert;
 
 /***/ }),
 /* 27 */
