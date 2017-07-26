@@ -5,7 +5,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const isProduction = process.argv.indexOf('-p') !== -1;
 const glob = require("glob");
 
-const themes = glob.sync('src/themes/*.scss').map(fileName => fileName.replace(/(.+\/)|(.scss)/g,''));
+const themes = glob.sync('src/themes/*.scss').map(fileName => fileName.replace(/(.+\/)|(\.scss)/g,''));
 
 const themeExtractors = themes.map(themeName => new ExtractTextPlugin({
 	filename:function(getPath) {
