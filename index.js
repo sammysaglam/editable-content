@@ -1,1 +1,3 @@
-module.exports = require("./src/EditableContent.js");
+import EditableContent from './src/EditableContent';
+
+module.exports = EditableContent;

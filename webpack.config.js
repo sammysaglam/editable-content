@@ -33,32 +33,32 @@ if ( isProduction ) {
 const outputFilename = !isProduction ? '[name].js' : '[name].min.js';
 
 module.exports = {
-	entry    :{
+	entry:{
 		'editable-content':[
-			'./src/EditableContent.js' ,
 			'./src/EditableContent.scss' ,
-			...(themes.map(themeName => './src/themes/' + themeName + '.scss'))
+			...(themes.map(themeName => './src/themes/' + themeName + '.scss')) ,
+			'./index.js'
 		]
 	} ,
-	output   :{
-		path         :path.resolve('./dist') ,
-		filename     :outputFilename ,
-		library      :'EditableContent' ,
+	output:{
+		path:path.resolve('./dist') ,
+		filename:outputFilename ,
+		library:'EditableContent' ,
 		libraryTarget:'var'
 	} ,
 	externals:{
-		'react'        :'React' ,
-		'draft-js'     :'Draft' ,
+		'react':'React' ,
+		'draft-js':'Draft' ,
 		'draft-convert':'DraftConvert' ,
-		'jquery'       :'$'
+		'jquery':'$'
 	} ,
-	module   :{
+	module:{
 		rules:[
 			{test:/\.(jpg|png|svg)$/ , loader:'url-loader'} ,
+			{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/} ,
 			...(themes.map((themeName , index) => ({test:new RegExp(themeName + "\.scss$") , loader:themeExtractors[index].extract(['css-loader' , 'sass-loader'])}))) ,
-			{test:/EditableContent\.scss$/ , loader:extractCSS.extract(['css-loader' , 'sass-loader'])} ,
-			{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/}
+			{test:/EditableContent\.scss$/ , loader:extractCSS.extract(['css-loader' , 'sass-loader'])}
 		]
 	} ,
-	plugins  :plugins
+	plugins:plugins
 }
