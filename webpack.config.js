@@ -32,33 +32,66 @@ if ( isProduction ) {
 }
 const outputFilename = !isProduction ? '[name].js' : '[name].min.js';
 
-module.exports = {
-	entry:{
-		'editable-content':[
-			'./src/EditableContent.scss' ,
-			...(themes.map(themeName => './src/themes/' + themeName + '.scss')) ,
-			'./index.js'
+module.exports = [
+	{
+		entry:{
+			'editable-content':[
+				'./src/EditableContent.scss' ,
+				...(themes.map(themeName => './src/themes/' + themeName + '.scss')) ,
+				'./index.js'
+			]
+		} ,
+		output:{
+			path:path.resolve('./dist') ,
+			filename:outputFilename ,
+			library:'EditableContent' ,
+			libraryTarget:'var'
+		} ,
+		externals:{
+			'react':'React' ,
+			'draft-js':'Draft' ,
+			'draft-convert':'DraftConvert' ,
+			'jquery':'$'
+		} ,
+		module:{
+			rules:[
+				{test:/\.(jpg|png|svg)$/ , loader:'url-loader'} ,
+				{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/} ,
+				...(themes.map((themeName , index) => ({test:new RegExp(themeName + "\.scss$") , loader:themeExtractors[index].extract(['css-loader' , 'sass-loader'])}))) ,
+				{test:/EditableContent\.scss$/ , loader:extractCSS.extract(['css-loader' , 'sass-loader'])}
+			]
+		} ,
+		plugins:plugins
+	} ,
+
+	// build as umd module
+	{
+		entry:{
+			'editable-content':'./index.js'
+		} ,
+		output:{
+			path:path.resolve('./dist') ,
+			filename:'[name].umd.min.js' ,
+			library:'EditableContent' ,
+			libraryTarget:'umd'
+		} ,
+		externals:{
+			'react':'react' ,
+			'draft-js':'draft-js' ,
+			'draft-convert':'draft-convert' ,
+			'jquery':'jquery'
+		} ,
+		module:{
+			rules:[
+				{test:/\.(jpg|png|svg)$/ , loader:'url-loader'} ,
+				{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/}
+			]
+		} ,
+		plugins:[
+			new UglifyJSPlugin({
+				compress:true ,
+				comments:false
+			})
 		]
-	} ,
-	output:{
-		path:path.resolve('./dist') ,
-		filename:outputFilename ,
-		library:'EditableContent' ,
-		libraryTarget:'var'
-	} ,
-	externals:{
-		'react':'React' ,
-		'draft-js':'Draft' ,
-		'draft-convert':'DraftConvert' ,
-		'jquery':'$'
-	} ,
-	module:{
-		rules:[
-			{test:/\.(jpg|png|svg)$/ , loader:'url-loader'} ,
-			{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/} ,
-			...(themes.map((themeName , index) => ({test:new RegExp(themeName + "\.scss$") , loader:themeExtractors[index].extract(['css-loader' , 'sass-loader'])}))) ,
-			{test:/EditableContent\.scss$/ , loader:extractCSS.extract(['css-loader' , 'sass-loader'])}
-		]
-	} ,
-	plugins:plugins
-}
+	}
+]
