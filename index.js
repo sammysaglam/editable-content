@@ -1,3 +1,3 @@
-import EditableContent from './src/EditableContent';
+import EditableContent from './dist/editable-content.umd.min';
 
 module.exports = EditableContent;
