@@ -21,7 +21,7 @@ export default class EditableContent extends React.Component {
 
 		const decorators = new CompositeDecorator([
 			{
-				strategy: Link.findLinkEntities ,
+				strategy:Link.findLinkEntities ,
 				component:(props) => {
 					return (
 						<Link
@@ -30,8 +30,8 @@ export default class EditableContent extends React.Component {
 							{...props}
 						/>
 					);
-				} ,
-			} ,
+				}
+			}
 		]);
 
 		let editorState;
@@ -47,9 +47,9 @@ export default class EditableContent extends React.Component {
 			rawContent.blocks.forEach(function(block , index) {
 
 				// convert HTML special chars to normal chars - e.g. '&lt;' ==> '<'
-				const tempElement     = document.createElement("textarea");
+				const tempElement = document.createElement("textarea");
 				tempElement.innerHTML = block.text;
-				block.text            = tempElement.value;
+				block.text = tempElement.value;
 
 				// make sure depth properties are integers, or else Draft hangs
 				block.depth = parseInt(block.depth);
@@ -60,31 +60,31 @@ export default class EditableContent extends React.Component {
 		}
 
 		this.state = {
-			editorState:  editorState ,
+			editorState:editorState ,
 			inlineToolbar:{show:false} ,
-			linkToolbar:  {show:false} ,
-			sideToolbar:  {isExpanded:false}
+			linkToolbar:{show:false} ,
+			sideToolbar:{isExpanded:false}
 		};
 
-		this.handleKeyCommand   = this.handleKeyCommand.bind(this);
-		this.onTab              = this.onTab.bind(this);
-		this.onChange           = this.onChange.bind(this);
-		this.toggleStyle        = this.toggleStyle.bind(this);
-		this.toggleLink         = this.toggleLink.bind(this);
-		this.toggleBlockType    = this.toggleBlockType.bind(this);
-		this.addImage           = this.addImage.bind(this);
-		this.removeImage        = this.removeImage.bind(this);
-		this.removeLink         = this.removeLink.bind(this);
-		this.updateSelection    = this.updateSelection.bind(this);
+		this.handleKeyCommand = this.handleKeyCommand.bind(this);
+		this.onTab = this.onTab.bind(this);
+		this.onChange = this.onChange.bind(this);
+		this.toggleStyle = this.toggleStyle.bind(this);
+		this.toggleLink = this.toggleLink.bind(this);
+		this.toggleBlockType = this.toggleBlockType.bind(this);
+		this.addImage = this.addImage.bind(this);
+		this.removeImage = this.removeImage.bind(this);
+		this.removeLink = this.removeLink.bind(this);
+		this.updateSelection = this.updateSelection.bind(this);
 		this.contentStateToHTML = this.contentStateToHTML.bind(this);
 
-		this.expandSideToolbar   = this.expandSideToolbar.bind(this);
+		this.expandSideToolbar = this.expandSideToolbar.bind(this);
 		this.collapseSideToolbar = this.collapseSideToolbar.bind(this);
-		this.showLinkToolbar     = this.showLinkToolbar.bind(this);
-		this.hideLinkToolbar     = this.hideLinkToolbar.bind(this);
+		this.showLinkToolbar = this.showLinkToolbar.bind(this);
+		this.hideLinkToolbar = this.hideLinkToolbar.bind(this);
 
-		this.handlePastedText   = this.handlePastedText.bind(this);
-		this.blockRenderer      = this.blockRenderer.bind(this);
+		this.handlePastedText = this.handlePastedText.bind(this);
+		this.blockRenderer = this.blockRenderer.bind(this);
 		this.mediaBlockRenderer = this.mediaBlockRenderer.bind(this);
 	};
 
@@ -98,9 +98,9 @@ export default class EditableContent extends React.Component {
 
 			this.setState({
 				inlineToolbar:{
-					show:    true ,
+					show:true ,
 					position:{
-						top: offset.top ,
+						top:offset.top ,
 						left:offset.left
 					}
 				}
@@ -111,9 +111,9 @@ export default class EditableContent extends React.Component {
 		}
 
 		const newContentState = editorState.getCurrentContent();
-		const newHtmlContent  = this.contentStateToHTML(newContentState);
-		const oldHtmlContent  = this.state.htmlContent;
-		const rawContent      = convertToRaw(editorState.getCurrentContent());
+		const newHtmlContent = this.contentStateToHTML(newContentState);
+		const oldHtmlContent = this.state.htmlContent;
+		const rawContent = convertToRaw(editorState.getCurrentContent());
 
 		this.setState({
 			editorState ,
@@ -129,30 +129,30 @@ export default class EditableContent extends React.Component {
 
 	contentStateToHTML(contentState) {
 		const html = convertToHTML({
-			styleToHTML: (style) => {
+			styleToHTML:(style) => {
 				if ( style === 'BOLD' ) {
-					return <strong />;
+					return <strong/>;
 				} else if ( style === 'UNDERLINE' ) {
 					return <span style={{textDecoration:'underline'}}/>;
 				} else if ( style === 'STRIKETHROUGH' ) {
 					return <span style={{textDecoration:'line-through'}}/>;
 				}
 			} ,
-			blockToHTML: (block) => {
+			blockToHTML:(block) => {
 				if ( block.type === 'code-block' ) {
 					return {
-						start:    '<code class="code-line">' ,
-						end:      '</code>' ,
+						start:'<code class="code-line">' ,
+						end:'</code>' ,
 						nestStart:'<pre>' ,
-						nestEnd:  '</pre>'
+						nestEnd:'</pre>'
 					}
 				} else if ( block.type === 'atomic' ) {
-					return <div />;
+					return <div/>;
 
 				} else if ( block.type === 'unstyled' ) {
 					return {
 						start:'<div class="paragraph">' ,
-						end:  '</div>' ,
+						end:'</div>' ,
 						empty:'<div class="paragraph">&nbsp;</div>'
 					}
 				}
@@ -217,12 +217,12 @@ export default class EditableContent extends React.Component {
 
 	onTab(e) {
 
-		const {editorState}  = this.state;
-		const contentState   = editorState.getCurrentContent();
+		const {editorState} = this.state;
+		const contentState = editorState.getCurrentContent();
 		const selectionState = editorState.getSelection();
-		const selectionKey   = selectionState.getStartKey();
-		const currentBlock   = contentState.getBlockForKey(selectionKey);
-		const blockType      = currentBlock.getType();
+		const selectionKey = selectionState.getStartKey();
+		const currentBlock = contentState.getBlockForKey(selectionKey);
+		const blockType = currentBlock.getType();
 
 		if ( blockType === 'ordered-list-item' || blockType === 'unordered-list-item' ) {
 			const maxDepth = 9;
@@ -230,7 +230,7 @@ export default class EditableContent extends React.Component {
 
 		} else {
 
-			const rangeRemoved      = Modifier.removeRange(
+			const rangeRemoved = Modifier.removeRange(
 				contentState ,
 				selectionState ,
 				'backward'
@@ -256,16 +256,16 @@ export default class EditableContent extends React.Component {
 	}
 
 	toggleLink(url) {
-		const {editorState}          = this.state;
-		const contentState           = editorState.getCurrentContent();
+		const {editorState} = this.state;
+		const contentState = editorState.getCurrentContent();
 		const contentStateWithEntity = contentState.createEntity(
 			'LINK' ,
 			'MUTABLE' ,
 			{url:url , target:'_self'}
 		);
-		const entityKey              = contentStateWithEntity.getLastCreatedEntityKey();
-		const newEditorState         = EditorState.set(editorState , {currentContent:contentStateWithEntity});
-		const newState               = RichUtils.toggleLink(
+		const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+		const newEditorState = EditorState.set(editorState , {currentContent:contentStateWithEntity});
+		const newState = RichUtils.toggleLink(
 			newEditorState ,
 			newEditorState.getSelection() ,
 			entityKey
@@ -276,15 +276,15 @@ export default class EditableContent extends React.Component {
 	removeLink(entityKey) {
 		const {editorState} = this.state;
 
-		const entityRange     = utils.selection.getEntityRange(editorState , entityKey);
-		const selection       = editorState.getSelection();
+		const entityRange = utils.selection.getEntityRange(editorState , entityKey);
+		const selection = editorState.getSelection();
 		const entitySelection = selection.merge({
-			anchorKey:   entityRange.blockKey ,
+			anchorKey:entityRange.blockKey ,
 			anchorOffset:entityRange.start ,
-			focusKey:    entityRange.blockKey ,
-			focusOffset: entityRange.end ,
+			focusKey:entityRange.blockKey ,
+			focusOffset:entityRange.end
 		});
-		const newState        = RichUtils.toggleLink(editorState , entitySelection , null);
+		const newState = RichUtils.toggleLink(editorState , entitySelection , null);
 		this.onChange(newState);
 		setTimeout(() => {
 			this.refs.editor.focus();
@@ -293,16 +293,16 @@ export default class EditableContent extends React.Component {
 	}
 
 	addImage(url) {
-		const {editorState}          = this.state;
-		const contentState           = editorState.getCurrentContent();
+		const {editorState} = this.state;
+		const contentState = editorState.getCurrentContent();
 		const contentStateWithEntity = contentState.createEntity(
 			'IMAGE' ,
 			'IMMUTABLE' ,
 			{src:url , align:'left'}
 		);
-		const entityKey              = contentStateWithEntity.getLastCreatedEntityKey();
-		const newEditorState         = EditorState.set(editorState , {currentContent:contentStateWithEntity});
-		const newState               = AtomicBlockUtils.insertAtomicBlock(
+		const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+		const newEditorState = EditorState.set(editorState , {currentContent:contentStateWithEntity});
+		const newState = AtomicBlockUtils.insertAtomicBlock(
 			newEditorState ,
 			entityKey ,
 			' '
@@ -314,22 +314,22 @@ export default class EditableContent extends React.Component {
 	removeImage(entityKey) {
 		const {editorState} = this.state;
 
-		const entityRange     = utils.selection.getEntityRange(editorState , entityKey);
-		const selection       = editorState.getSelection();
+		const entityRange = utils.selection.getEntityRange(editorState , entityKey);
+		const selection = editorState.getSelection();
 		const entitySelection = selection.merge({
-			anchorKey:   entityRange.blockKey ,
+			anchorKey:entityRange.blockKey ,
 			anchorOffset:entityRange.start ,
-			focusKey:    entityRange.blockKey ,
-			focusOffset: entityRange.end ,
+			focusKey:entityRange.blockKey ,
+			focusOffset:entityRange.end
 		});
 
 		const withoutImage = Modifier.removeRange(editorState.getCurrentContent() , entitySelection , 'backward');
-		const resetBlock   = Modifier.setBlockType(
+		const resetBlock = Modifier.setBlockType(
 			withoutImage ,
 			withoutImage.getSelectionAfter() ,
-			'unstyled' ,
+			'unstyled'
 		);
-		const newState     = EditorState.push(editorState , resetBlock , 'remove-range');
+		const newState = EditorState.push(editorState , resetBlock , 'remove-range');
 
 		this.onChange(EditorState.forceSelection(newState , resetBlock.getSelectionAfter()));
 		setTimeout(() => {
@@ -359,15 +359,15 @@ export default class EditableContent extends React.Component {
 		if ( linkComponent ) {
 
 			const containerPosition = this.refs.container.getBoundingClientRect();
-			const toolbarPosition   = {
-				top: linkPosition.top - containerPosition.top - 45 ,
+			const toolbarPosition = {
+				top:linkPosition.top - containerPosition.top - 45 ,
 				left:linkPosition.left - containerPosition.left
 			};
 
 			this.setState({
 				linkToolbar:{
-					show:         true ,
-					position:     toolbarPosition ,
+					show:true ,
+					position:toolbarPosition ,
 					linkComponent:linkComponent
 				}
 			});
@@ -375,7 +375,7 @@ export default class EditableContent extends React.Component {
 		} else {
 
 			const linkToolbarSettings = this.state.linkToolbar;
-			linkToolbarSettings.show  = true;
+			linkToolbarSettings.show = true;
 			this.setState({
 				linkToolbar:linkToolbarSettings
 			});
@@ -392,7 +392,7 @@ export default class EditableContent extends React.Component {
 
 	render() {
 		const {editorState , selectedBlock} = this.state;
-		const editor                        = this.refs.container;
+		const editor = this.refs.container;
 
 		// get selectedBlock, and make sure it is the child of the editor
 		let sideToolbarOffsetTop = 0;
@@ -412,41 +412,53 @@ export default class EditableContent extends React.Component {
 
 			// calculate sideToolbar coordinates
 			const editorBounds = editor.getBoundingClientRect();
-			const blockBounds  = selectedBlock.getBoundingClientRect();
+			const blockBounds = selectedBlock.getBoundingClientRect();
 
-			sideToolbarOffsetTop = (blockBounds.top - editorBounds.top) - (blockBounds.top - blockBounds.bottom)/2 - 16;
+			sideToolbarOffsetTop = (blockBounds.top - editorBounds.top) - (blockBounds.top - blockBounds.bottom) / 2 - 16;
 		}
 
 		return (
-			<div ref="container">
-				<InlineToolbar
-					editorState={editorState}
-					showToolbar={this.state.inlineToolbar.show && !this.state.sideToolbar.isExpanded}
-					toggleStyle={this.toggleStyle}
-					toggleLink={this.toggleLink}
-					position={this.state.inlineToolbar.position}
-				/>
-				{selectedBlock
-					? <SideToolbar
+			<div className={this.props.disabled === true ? "disabled" : ""} ref="container">
+				{
+					this.props.disabled !== true && <InlineToolbar
 						editorState={editorState}
-						position={{top:sideToolbarOffsetTop}}
-						toggleBlockType={this.toggleBlockType}
-						addImage={this.addImage}
-						expandSideToolbar={this.expandSideToolbar}
-						collapseSideToolbar={this.collapseSideToolbar}
-						isExpanded={this.state.sideToolbar.isExpanded}
+						showToolbar={this.state.inlineToolbar.show && !this.state.sideToolbar.isExpanded}
+						toggleStyle={this.toggleStyle}
+						toggleLink={this.toggleLink}
+						position={this.state.inlineToolbar.position}
 					/>
-					: null
 				}
-				{this.state.linkToolbar.show && !this.state.sideToolbar.isExpanded && !this.state.inlineToolbar.show
-					? <LinkToolbar
-						position={this.state.linkToolbar.position}
-						linkComponent={this.state.linkToolbar.linkComponent}
-						removeLink={this.removeLink}
-						showLinkToolbar={this.showLinkToolbar}
-						hideLinkToolbar={this.hideLinkToolbar}
-					/>
-					: null
+				{
+					this.props.disabled !== true && selectedBlock ?
+
+						<SideToolbar
+							editorState={editorState}
+							position={{top:sideToolbarOffsetTop}}
+							toggleBlockType={this.toggleBlockType}
+							addImage={this.addImage}
+							expandSideToolbar={this.expandSideToolbar}
+							collapseSideToolbar={this.collapseSideToolbar}
+							isExpanded={this.state.sideToolbar.isExpanded}
+						/>
+
+						:
+
+						null
+				}
+				{
+					this.props.disabled !== true && this.state.linkToolbar.show && !this.state.sideToolbar.isExpanded && !this.state.inlineToolbar.show ?
+
+						<LinkToolbar
+							position={this.state.linkToolbar.position}
+							linkComponent={this.state.linkToolbar.linkComponent}
+							removeLink={this.removeLink}
+							showLinkToolbar={this.showLinkToolbar}
+							hideLinkToolbar={this.hideLinkToolbar}
+						/>
+
+						:
+
+						null
 				}
 				<Editor
 					editorState={this.state.editorState}
@@ -456,6 +468,7 @@ export default class EditableContent extends React.Component {
 					handlePastedText={this.handlePastedText}
 					onChange={this.onChange}
 					onTab={this.onTab}
+					readOnly={this.props.disabled === true}
 					handleKeyCommand={this.handleKeyCommand}
 					ref="editor"
 					placeholder="Enter some text..."
@@ -468,7 +481,7 @@ export default class EditableContent extends React.Component {
 
 		// build html into DOM elements
 		const {editorState} = this.state;
-		const domObject     = $(html);
+		const domObject = $(html);
 
 		let newHtml;
 
@@ -520,12 +533,12 @@ export default class EditableContent extends React.Component {
 			newHtml = newHtml.replace(/<pre><\/pre>/g , '<pre>&nbsp; </pre>')
 
 			// create blocks from modified HTML
-			const blocksFromHTML  = convertFromHTML(newHtml);
+			const blocksFromHTML = convertFromHTML(newHtml);
 			const pastedDataState = ContentState.createFromBlockArray(
 				blocksFromHTML.contentBlocks ,
 				blocksFromHTML.entityMap
 			);
-			const blockMap        = pastedDataState.getBlockMap();
+			const blockMap = pastedDataState.getBlockMap();
 
 			// insert new blocks into current selection
 			const newState = Modifier.replaceWithFragment(editorState.getCurrentContent() , editorState.getSelection() , blockMap);
@@ -541,7 +554,7 @@ export default class EditableContent extends React.Component {
 		if ( block.getType() === 'atomic' ) {
 			return {
 				component:this.mediaBlockRenderer ,
-				editable: false ,
+				editable:false
 			};
 		}
 
@@ -560,8 +573,8 @@ export default class EditableContent extends React.Component {
 	}
 
 	mediaBlockRenderer(props) {
-		const entityKey  = props.block.getEntityAt(0);
-		const entity     = props.contentState.getEntity(entityKey);
+		const entityKey = props.block.getEntityAt(0);
+		const entity = props.contentState.getEntity(entityKey);
 		const entityData = entity.getData();
 		const entityType = entity.getType();
 

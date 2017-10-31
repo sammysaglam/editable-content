@@ -631,15 +631,15 @@ var EditableContent = function (_React$Component) {
 
 			return _react2.default.createElement(
 				'div',
-				{ ref: 'container' },
-				_react2.default.createElement(_InlineToolbar2.default, {
+				{ className: this.props.disabled === true ? "disabled" : "", ref: 'container' },
+				this.props.disabled !== true && _react2.default.createElement(_InlineToolbar2.default, {
 					editorState: editorState,
 					showToolbar: this.state.inlineToolbar.show && !this.state.sideToolbar.isExpanded,
 					toggleStyle: this.toggleStyle,
 					toggleLink: this.toggleLink,
 					position: this.state.inlineToolbar.position
 				}),
-				selectedBlock ? _react2.default.createElement(_SideToolbar2.default, {
+				this.props.disabled !== true && selectedBlock ? _react2.default.createElement(_SideToolbar2.default, {
 					editorState: editorState,
 					position: { top: sideToolbarOffsetTop },
 					toggleBlockType: this.toggleBlockType,
@@ -648,7 +648,7 @@ var EditableContent = function (_React$Component) {
 					collapseSideToolbar: this.collapseSideToolbar,
 					isExpanded: this.state.sideToolbar.isExpanded
 				}) : null,
-				this.state.linkToolbar.show && !this.state.sideToolbar.isExpanded && !this.state.inlineToolbar.show ? _react2.default.createElement(_LinkToolbar2.default, {
+				this.props.disabled !== true && this.state.linkToolbar.show && !this.state.sideToolbar.isExpanded && !this.state.inlineToolbar.show ? _react2.default.createElement(_LinkToolbar2.default, {
 					position: this.state.linkToolbar.position,
 					linkComponent: this.state.linkToolbar.linkComponent,
 					removeLink: this.removeLink,
@@ -663,6 +663,7 @@ var EditableContent = function (_React$Component) {
 					handlePastedText: this.handlePastedText,
 					onChange: this.onChange,
 					onTab: this.onTab,
+					readOnly: this.props.disabled === true,
 					handleKeyCommand: this.handleKeyCommand,
 					ref: 'editor',
 					placeholder: 'Enter some text...'
