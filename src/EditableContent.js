@@ -11,7 +11,7 @@ import SideToolbar from './components/Toolbars/SideToolbar' ;
 
 import {utils} from './utils/entry.js';
 
-export default class EditableContent extends React.Component {
+class EditableContent extends React.Component {
 
 	constructor(props) {
 		super(props);
@@ -587,3 +587,5 @@ export default class EditableContent extends React.Component {
 	}
 
 }
+
+module.exports = EditableContent;

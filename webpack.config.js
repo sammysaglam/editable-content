@@ -26,8 +26,12 @@ const plugins = [
 
 if ( isProduction ) {
 	plugins.push(new UglifyJSPlugin({
-		compress:true ,
-		comments:false
+		uglifyOptions:{
+			compress:true ,
+			output:{
+				comments:false
+			}
+		}
 	}));
 }
 const outputFilename = !isProduction ? '[name].js' : '[name].min.js';
@@ -38,7 +42,7 @@ module.exports = [
 			'editable-content':[
 				'./src/EditableContent.scss' ,
 				...(themes.map(themeName => './src/themes/' + themeName + '.scss')) ,
-				'./index.js'
+				'./src/EditableContent.js'
 			]
 		} ,
 		output:{
@@ -57,7 +61,7 @@ module.exports = [
 			rules:[
 				{test:/\.(jpg|png|svg)$/ , loader:'url-loader'} ,
 				{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/} ,
-				...(themes.map((themeName , index) => ({test:new RegExp(themeName + "\.scss$") , loader:themeExtractors[index].extract(['css-loader' , 'sass-loader'])}))) ,
+				...(themes.map((themeName , index) => ({test:new RegExp(themeName + "\.scss$") , use:themeExtractors[index].extract(['css-loader' , 'sass-loader'])}))) ,
 				{test:/EditableContent\.scss$/ , loader:extractCSS.extract(['css-loader' , 'sass-loader'])}
 			]
 		} ,
@@ -67,11 +71,11 @@ module.exports = [
 	// build as umd module
 	{
 		entry:{
-			'editable-content':'./index.js'
+			'editable-content':'./src/EditableContent.js'
 		} ,
 		output:{
 			path:path.resolve('./dist') ,
-			filename:'[name].umd.min.js' ,
+			filename:'[name].umd.js' ,
 			library:'EditableContent' ,
 			libraryTarget:'umd'
 		} ,
@@ -86,12 +90,6 @@ module.exports = [
 				{test:/\.(jpg|png|svg)$/ , loader:'url-loader'} ,
 				{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/}
 			]
-		} ,
-		plugins:[
-			new UglifyJSPlugin({
-				compress:true ,
-				comments:false
-			})
-		]
+		}
 	}
 ]

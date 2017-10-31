@@ -1,3 +1,3 @@
-import EditableContent from './dist/editable-content.umd.min';
+import EditableContent from './dist/editable-content.umd';
 
-module.exports = EditableContent;
+export default EditableContent;
