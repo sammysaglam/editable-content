@@ -418,7 +418,7 @@ class EditableContent extends React.Component {
 		}
 
 		return (
-			<div className={this.props.disabled === true ? "disabled" : ""} ref="container">
+			<div className={`editable-content ${this.props.disabled === true ? "disabled" : ""}`} ref="container">
 				{
 					this.props.disabled !== true && <InlineToolbar
 						editorState={editorState}
@@ -471,7 +471,7 @@ class EditableContent extends React.Component {
 					readOnly={this.props.disabled === true}
 					handleKeyCommand={this.handleKeyCommand}
 					ref="editor"
-					placeholder="Enter some text..."
+					placeholder={this.props.disabled ? "" : "Enter some text..."}
 				/>
 			</div>
 		);

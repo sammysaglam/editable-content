@@ -1,13 +1,14 @@
 @import '~draft-js/dist/Draft.css';
 
-.DraftEditor-root {
-	outline  : 1px dotted #CC806B;
-	overflow : auto;
-	padding  : 10px 30px;
-}
-
-.axe-editable_content {
+.editable-content {
 	position : relative;
+
+	&:not(.disabled) {
+		.DraftEditor-root {
+			outline  : 1px dotted #CC806B;
+			overflow : auto;
+		}
+	}
 
 	.DraftEditor-root {
 		padding : 0;

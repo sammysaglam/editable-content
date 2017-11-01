@@ -618,7 +618,7 @@ var EditableContent = function (_React$Component) {
 
 			return _react2.default.createElement(
 				'div',
-				{ className: this.props.disabled === true ? "disabled" : "", ref: 'container' },
+				{ className: 'editable-content ' + (this.props.disabled === true ? "disabled" : ""), ref: 'container' },
 				this.props.disabled !== true && _react2.default.createElement(_InlineToolbar2.default, {
 					editorState: editorState,
 					showToolbar: this.state.inlineToolbar.show && !this.state.sideToolbar.isExpanded,
@@ -653,7 +653,7 @@ var EditableContent = function (_React$Component) {
 					readOnly: this.props.disabled === true,
 					handleKeyCommand: this.handleKeyCommand,
 					ref: 'editor',
-					placeholder: 'Enter some text...'
+					placeholder: this.props.disabled ? "" : "Enter some text..."
 				})
 			);
 		}
