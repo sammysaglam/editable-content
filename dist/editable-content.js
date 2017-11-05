@@ -115,9 +115,9 @@ var ToolbarIcon = function (_React$Component) {
 
 	_createClass(ToolbarIcon, [{
 		key: 'onMouseDown',
-		value: function onMouseDown(e) {
-			this.props.onToggle(this.props.id_, this.props.type);
-			e.preventDefault();
+		value: function onMouseDown(event) {
+			this.props.onToggle(this.props.type, this.props.styleType);
+			event.preventDefault();
 		}
 	}, {
 		key: 'render',
@@ -127,7 +127,7 @@ var ToolbarIcon = function (_React$Component) {
 				{ className: this.props.active ? 'active' : '', onMouseDown: this.onMouseDown },
 				_react2.default.createElement(
 					'span',
-					{ className: this.props.id_.toLowerCase() },
+					{ className: this.props.type.toLowerCase() },
 					this.props.label
 				)
 			);
@@ -224,45 +224,7 @@ var EditableContent = function (_React$Component) {
 		_this.sideToolbarTimeout = null;
 		_this.linkToolbarTimeout = null;
 
-		var decorators = new _draftJs.CompositeDecorator([{
-			strategy: _Link2.default.findLinkEntities,
-			component: function component(props) {
-				return _react2.default.createElement(_Link2.default, _extends({
-					showLinkToolbar: _this.showLinkToolbar,
-					hideLinkToolbar: _this.hideLinkToolbar
-				}, props));
-			}
-		}]);
-
-		var editorState = void 0;
-		var _this$props$rawConten = _this.props.rawContent,
-		    rawContent = _this$props$rawConten === undefined ? {} : _this$props$rawConten;
-
-		if (!rawContent.blocks) {
-			editorState = _draftJs.EditorState.createEmpty(decorators);
-		} else {
-
-			// add empty entity map if doesnt exist
-			if (!rawContent.entityMap) rawContent.entityMap = {};
-
-			// process blocks
-			rawContent.blocks.forEach(function (block, index) {
-
-				// convert HTML special chars to normal chars - e.g. '&lt;' ==> '<'
-				var tempElement = document.createElement("textarea");
-				tempElement.innerHTML = block.text;
-				block.text = tempElement.value;
-
-				// make sure depth properties are integers, or else Draft hangs
-				block.depth = parseInt(block.depth);
-			});
-
-			// create editorState
-			editorState = _draftJs.EditorState.createWithContent((0, _draftJs.convertFromRaw)(rawContent), decorators);
-		}
-
 		_this.state = {
-			editorState: editorState,
 			inlineToolbar: { show: false },
 			linkToolbar: { show: false },
 			sideToolbar: { isExpanded: false }
@@ -294,8 +256,12 @@ var EditableContent = function (_React$Component) {
 	_createClass(EditableContent, [{
 		key: 'onChange',
 		value: function onChange(editorState) {
+			var _props = this.props,
+			    updateContents = _props.updateContents,
+			    saveContents = _props.saveContents;
 
 			// is selection is not collapsed, show the inlineToolbar for formatting the selection
+
 			var selection = _entry.utils.selection.getSelection();
 			if (!selection.isCollapsed && !editorState.getSelection().isCollapsed() && selection.range) {
 
@@ -320,20 +286,34 @@ var EditableContent = function (_React$Component) {
 			var rawContent = (0, _draftJs.convertToRaw)(editorState.getCurrentContent());
 
 			this.setState({
-				editorState: editorState,
 				htmlContent: newHtmlContent
 			});
 
-			if (this.props.saveFn && newHtmlContent !== oldHtmlContent) {
-				this.props.saveFn(newHtmlContent, rawContent);
+			// update redux state
+			updateContents(this.addCompositeDecorators(editorState));
+
+			// call save function on change
+			if (saveContents && newHtmlContent !== oldHtmlContent) {
+				saveContents(rawContent, newHtmlContent);
 			}
 
 			setTimeout(this.updateSelection, 0);
 		}
 	}, {
+		key: 'componentWillReceiveProps',
+		value: function componentWillReceiveProps(nextProps) {
+
+			// call onChange to add composite decorators if they dont exist yet
+			if (nextProps.editorState.getDecorator() === null) {
+				this.onChange(nextProps.editorState);
+			}
+		}
+	}, {
 		key: 'contentStateToHTML',
 		value: function contentStateToHTML(contentState) {
 			var html = (0, _draftConvert.convertToHTML)({
+
+				// eslint-disable-next-line consistent-return
 				styleToHTML: function styleToHTML(style) {
 					if (style === 'BOLD') {
 						return _react2.default.createElement('strong', null);
@@ -343,6 +323,8 @@ var EditableContent = function (_React$Component) {
 						return _react2.default.createElement('span', { style: { textDecoration: 'line-through' } });
 					}
 				},
+
+				// eslint-disable-next-line consistent-return
 				blockToHTML: function blockToHTML(block) {
 					if (block.type === 'code-block') {
 						return {
@@ -367,8 +349,8 @@ var EditableContent = function (_React$Component) {
 						return '<a href="' + entity.data.url + '" target="' + entity.data.target + '">' + originalText + '</a>';
 					} else if (entity.type === 'IMAGE') {
 
-						var alignStyle = void 0;
-						var floatStyle = void 0;
+						var alignStyle = null;
+						var floatStyle = null;
 						switch (entity.data.align) {
 							case 'left':
 								alignStyle = '';
@@ -384,6 +366,10 @@ var EditableContent = function (_React$Component) {
 								alignStyle = 'text-align:center ;';
 								floatStyle = 'float:none ;';
 								break;
+
+							// error
+							default:
+								return null;
 						}
 
 						return '<div style="' + alignStyle + '"><img src=\'' + entity.data.src + '\' style=\'' + floatStyle + '\' /></div>';
@@ -399,7 +385,7 @@ var EditableContent = function (_React$Component) {
 		key: 'updateSelection',
 		value: function updateSelection() {
 			var selectionRange = _entry.utils.selection.getSelection().range;
-			var selectedBlock = void 0;
+			var selectedBlock = null;
 			if (selectionRange) {
 				selectedBlock = _entry.utils.selection.getSelectedBlockElement(selectionRange);
 			}
@@ -411,7 +397,10 @@ var EditableContent = function (_React$Component) {
 	}, {
 		key: 'handleKeyCommand',
 		value: function handleKeyCommand(command) {
-			var newState = _draftJs.RichUtils.handleKeyCommand(this.state.editorState, command);
+			var editorState = this.props.editorState;
+
+
+			var newState = _draftJs.RichUtils.handleKeyCommand(editorState, command);
 			if (newState) {
 				this.onChange(newState);
 				return 'handled';
@@ -421,8 +410,8 @@ var EditableContent = function (_React$Component) {
 		}
 	}, {
 		key: 'onTab',
-		value: function onTab(e) {
-			var editorState = this.state.editorState;
+		value: function onTab(event) {
+			var editorState = this.props.editorState;
 
 			var contentState = editorState.getCurrentContent();
 			var selectionState = editorState.getSelection();
@@ -432,33 +421,39 @@ var EditableContent = function (_React$Component) {
 
 			if (blockType === 'ordered-list-item' || blockType === 'unordered-list-item') {
 				var maxDepth = 9;
-				this.onChange(_draftJs.RichUtils.onTab(e, this.state.editorState, maxDepth));
+				this.onChange(_draftJs.RichUtils.onTab(event, editorState, maxDepth));
 			} else {
 
 				var rangeRemoved = _draftJs.Modifier.removeRange(contentState, selectionState, 'backward');
 				var rangeRemovedState = _draftJs.EditorState.push(editorState, rangeRemoved, 'selection-removed');
 
-				var tabAdded = _draftJs.Modifier.insertText(rangeRemovedState.getCurrentContent(), rangeRemovedState.getSelection(), "   ");
+				var tabAdded = _draftJs.Modifier.insertText(rangeRemovedState.getCurrentContent(), rangeRemovedState.getSelection(), '   ');
 
 				var newState = _draftJs.EditorState.push(editorState, tabAdded, 'tab-added');
 				this.onChange(newState);
 
-				e.preventDefault();
+				event.preventDefault();
 			}
 		}
 	}, {
 		key: 'toggleStyle',
 		value: function toggleStyle(id) {
-			var newState = _draftJs.RichUtils.toggleInlineStyle(this.state.editorState, id);
+			var editorState = this.props.editorState;
+
+
+			var newState = _draftJs.RichUtils.toggleInlineStyle(editorState, id);
 			this.onChange(newState);
 		}
 	}, {
 		key: 'toggleLink',
 		value: function toggleLink(url) {
-			var editorState = this.state.editorState;
+			var editorState = this.props.editorState;
 
 			var contentState = editorState.getCurrentContent();
-			var contentStateWithEntity = contentState.createEntity('LINK', 'MUTABLE', { url: url, target: '_self' });
+			var contentStateWithEntity = contentState.createEntity('LINK', 'MUTABLE', {
+				url: url,
+				target: '_self'
+			});
 			var entityKey = contentStateWithEntity.getLastCreatedEntityKey();
 			var newEditorState = _draftJs.EditorState.set(editorState, { currentContent: contentStateWithEntity });
 			var newState = _draftJs.RichUtils.toggleLink(newEditorState, newEditorState.getSelection(), entityKey);
@@ -469,7 +464,7 @@ var EditableContent = function (_React$Component) {
 		value: function removeLink(entityKey) {
 			var _this2 = this;
 
-			var editorState = this.state.editorState;
+			var editorState = this.props.editorState;
 
 
 			var entityRange = _entry.utils.selection.getEntityRange(editorState, entityKey);
@@ -489,10 +484,13 @@ var EditableContent = function (_React$Component) {
 	}, {
 		key: 'addImage',
 		value: function addImage(url) {
-			var editorState = this.state.editorState;
+			var editorState = this.props.editorState;
 
 			var contentState = editorState.getCurrentContent();
-			var contentStateWithEntity = contentState.createEntity('IMAGE', 'IMMUTABLE', { src: url, align: 'left' });
+			var contentStateWithEntity = contentState.createEntity('IMAGE', 'IMMUTABLE', {
+				src: url,
+				align: 'left'
+			});
 			var entityKey = contentStateWithEntity.getLastCreatedEntityKey();
 			var newEditorState = _draftJs.EditorState.set(editorState, { currentContent: contentStateWithEntity });
 			var newState = _draftJs.AtomicBlockUtils.insertAtomicBlock(newEditorState, entityKey, ' ');
@@ -503,7 +501,7 @@ var EditableContent = function (_React$Component) {
 		value: function removeImage(entityKey) {
 			var _this3 = this;
 
-			var editorState = this.state.editorState;
+			var editorState = this.props.editorState;
 
 
 			var entityRange = _entry.utils.selection.getEntityRange(editorState, entityKey);
@@ -527,7 +525,10 @@ var EditableContent = function (_React$Component) {
 	}, {
 		key: 'toggleBlockType',
 		value: function toggleBlockType(id) {
-			var newState = _draftJs.RichUtils.toggleBlockType(this.state.editorState, id);
+			var editorState = this.props.editorState;
+
+
+			var newState = _draftJs.RichUtils.toggleBlockType(editorState, id);
 			this.onChange(newState);
 		}
 	}, {
@@ -541,19 +542,32 @@ var EditableContent = function (_React$Component) {
 		value: function collapseSideToolbar() {
 			var _this4 = this;
 
+			var TIME_TO_HIDE = 200;
+
 			this.sideToolbarTimeout = setTimeout(function () {
 				_this4.setState({ sideToolbar: { isExpanded: false } });
-			}, 200);
+			}, TIME_TO_HIDE);
 		}
+
+		// eslint-disable-next-line consistent-return
+
 	}, {
 		key: 'showLinkToolbar',
 		value: function showLinkToolbar(linkPosition, linkComponent) {
+
+			if (!this) {
+				return false;
+			}
+
+			var linkToolbar = this.state.linkToolbar;
+
+			var TOOLBAR_OFFSET_TOP = -45;
 
 			if (linkComponent) {
 
 				var containerPosition = this.refs.container.getBoundingClientRect();
 				var toolbarPosition = {
-					top: linkPosition.top - containerPosition.top - 45,
+					top: linkPosition.top - containerPosition.top + TOOLBAR_OFFSET_TOP,
 					left: linkPosition.left - containerPosition.left
 				};
 
@@ -566,7 +580,7 @@ var EditableContent = function (_React$Component) {
 				});
 			} else {
 
-				var linkToolbarSettings = this.state.linkToolbar;
+				var linkToolbarSettings = linkToolbar;
 				linkToolbarSettings.show = true;
 				this.setState({
 					linkToolbar: linkToolbarSettings
@@ -575,6 +589,9 @@ var EditableContent = function (_React$Component) {
 
 			clearTimeout(this.linkToolbarTimeout);
 		}
+
+		// eslint-disable-next-line consistent-return
+
 	}, {
 		key: 'hideLinkToolbar',
 		value: function hideLinkToolbar() {
@@ -582,16 +599,28 @@ var EditableContent = function (_React$Component) {
 
 			var timeout = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 
+
+			if (!this) {
+				return false;
+			}
+
+			var TIME_TO_HIDE = 400;
+
 			this.linkToolbarTimeout = setTimeout(function () {
 				_this5.setState({ linkToolbar: { show: false } });
-			}, timeout ? 200 : 0);
+			}, timeout ? TIME_TO_HIDE : 0);
 		}
 	}, {
 		key: 'render',
 		value: function render() {
+			var _this6 = this;
+
+			var editorState = this.props.editorState;
 			var _state = this.state,
-			    editorState = _state.editorState,
-			    selectedBlock = _state.selectedBlock;
+			    selectedBlock = _state.selectedBlock,
+			    inlineToolbar = _state.inlineToolbar,
+			    sideToolbar = _state.sideToolbar,
+			    linkToolbar = _state.linkToolbar;
 
 			var editor = this.refs.container;
 
@@ -600,8 +629,8 @@ var EditableContent = function (_React$Component) {
 			if (selectedBlock && function (parent, child) {
 
 				var node = child.parentNode;
-				while (node != null) {
-					if (node == parent) {
+				while (node !== null) {
+					if (node === parent) {
 						return true;
 					}
 					node = node.parentNode;
@@ -613,18 +642,29 @@ var EditableContent = function (_React$Component) {
 				var editorBounds = editor.getBoundingClientRect();
 				var blockBounds = selectedBlock.getBoundingClientRect();
 
+				// eslint-disable-next-line no-magic-numbers
 				sideToolbarOffsetTop = blockBounds.top - editorBounds.top - (blockBounds.top - blockBounds.bottom) / 2 - 16;
 			}
 
+			// if editorState not defined then is loading
+			if (!this.props.editorState) {
+				return _react2.default.createElement(
+					'div',
+					{ className: 'editable-content' },
+					'loading...'
+				);
+			}
+
+			// return
 			return _react2.default.createElement(
 				'div',
-				{ className: 'editable-content ' + (this.props.disabled === true ? "disabled" : ""), ref: 'container' },
+				{ className: 'editable-content ' + (this.props.disabled === true ? 'disabled' : ''), ref: 'container' },
 				this.props.disabled !== true && _react2.default.createElement(_InlineToolbar2.default, {
 					editorState: editorState,
-					showToolbar: this.state.inlineToolbar.show && !this.state.sideToolbar.isExpanded,
+					showToolbar: inlineToolbar.show && !sideToolbar.isExpanded,
 					toggleStyle: this.toggleStyle,
 					toggleLink: this.toggleLink,
-					position: this.state.inlineToolbar.position
+					position: inlineToolbar.position
 				}),
 				this.props.disabled !== true && selectedBlock ? _react2.default.createElement(_SideToolbar2.default, {
 					editorState: editorState,
@@ -633,17 +673,20 @@ var EditableContent = function (_React$Component) {
 					addImage: this.addImage,
 					expandSideToolbar: this.expandSideToolbar,
 					collapseSideToolbar: this.collapseSideToolbar,
-					isExpanded: this.state.sideToolbar.isExpanded
+					isExpanded: sideToolbar.isExpanded
 				}) : null,
-				this.props.disabled !== true && this.state.linkToolbar.show && !this.state.sideToolbar.isExpanded && !this.state.inlineToolbar.show ? _react2.default.createElement(_LinkToolbar2.default, {
-					position: this.state.linkToolbar.position,
-					linkComponent: this.state.linkToolbar.linkComponent,
+				this.props.disabled !== true && linkToolbar.show && !sideToolbar.isExpanded && !inlineToolbar.show ? _react2.default.createElement(_LinkToolbar2.default, {
+					position: linkToolbar.position,
+					linkComponent: linkToolbar.linkComponent,
 					removeLink: this.removeLink,
 					showLinkToolbar: this.showLinkToolbar,
-					hideLinkToolbar: this.hideLinkToolbar
+					hideLinkToolbar: this.hideLinkToolbar,
+					onChange: function onChange() {
+						return _this6.onChange(editorState);
+					}
 				}) : null,
 				_react2.default.createElement(_draftJs.Editor, {
-					editorState: this.state.editorState,
+					editorState: editorState,
 					spellCheck: true,
 					blockRendererFn: this.blockRenderer,
 					blockStyleFn: this.myBlockStyleFn,
@@ -653,55 +696,62 @@ var EditableContent = function (_React$Component) {
 					readOnly: this.props.disabled === true,
 					handleKeyCommand: this.handleKeyCommand,
 					ref: 'editor',
-					placeholder: this.props.disabled ? "" : "Enter some text..."
+					placeholder: this.props.disabled ? '' : 'Enter some text...'
 				})
 			);
 		}
+
+		// eslint-disable-next-line consistent-return
+
 	}, {
 		key: 'handlePastedText',
 		value: function handlePastedText(text, html) {
 
 			// build html into DOM elements
-			var editorState = this.state.editorState;
+			var editorState = this.props.editorState;
 
 			var domObject = (0, _jquery2.default)(html);
 
-			var newHtml = void 0;
+			var newHtml = null;
+
+			/* eslint-disable no-magic-numbers */
 
 			// check if code is being pasted
 			if ((0, _jquery2.default)(domObject).eq(1).prop('tagName') && (0, _jquery2.default)(domObject).eq(1).prop('tagName').toLowerCase() === 'pre') {
 
 				// retrieve pasted HTML and convert all line breaks to <pre> tags
 				newHtml = domObject.eq(1).html();
-				newHtml = "<pre>" + newHtml.split("<br>").join("</pre><pre>") + "</pre>";
+				newHtml = '<pre>' + newHtml.split('<br>').join('</pre><pre>') + '</pre>';
 			} else if (domObject.eq(2).prop('tagName') && domObject.eq(2).prop('tagName').toLowerCase() === 'pre') {
 
 				// loop through all code lines, and convert to simple text
 				newHtml = '';
-				domObject.eq(2).find("> pre").each(function (index, element) {
+				domObject.eq(2).find('> pre').each(function (index, element) {
 					newHtml += '<pre>' + (0, _jquery2.default)(element).text() + '</pre>';
 				});
 
 				// if the above didnt work, try the following
 				if (!newHtml) {
 					newHtml = domObject.eq(2).html();
-					newHtml = newHtml.split("\n").join("</code><code>");
-					newHtml = newHtml.replace(/<code/g, '<pre').replace(/<\/code>/g, '<\/pre>');
+					newHtml = newHtml.split('\n').join('</code><code>');
+					newHtml = newHtml.replace(/<code/g, '<pre').replace(/<\/code>/g, '</pre>');
 				}
 			} else if (domObject.eq(2).prop('tagName') && domObject.eq(2).prop('tagName').toLowerCase() === 'code') {
 
 				// retrieve pasted HTML and convert all line breaks to <pre> tags
 				newHtml = domObject.eq(2).html();
-				newHtml = "<pre>" + newHtml.split("<br>").join("</pre><pre>") + "</pre>";
-				newHtml = newHtml.replace(/<code/g, '<pre').replace(/<\/code>/g, '<\/pre>');
-			} else if (domObject.eq(2).find("> .phpcode > code").length === 1) {
+				newHtml = '<pre>' + newHtml.split('<br>').join('</pre><pre>') + '</pre>';
+				newHtml = newHtml.replace(/<code/g, '<pre').replace(/<\/code>/g, '</pre>');
+			} else if (domObject.eq(2).find('> .phpcode > code').length === 1) {
 
 				// retrieve pasted HTML and convert all line breaks to <pre> tags
-				newHtml = domObject.eq(2).find("> .phpcode > code").html();
-				newHtml = "<pre>" + newHtml.split("<br>").join("</pre><pre>") + "</pre>";
-				newHtml = newHtml.split("\n").join("</pre><pre>");
-				newHtml = newHtml.replace(/<code/g, '<pre').replace(/<\/code>/g, '<\/pre>');
+				newHtml = domObject.eq(2).find('> .phpcode > code').html();
+				newHtml = '<pre>' + newHtml.split('<br>').join('</pre><pre>') + '</pre>';
+				newHtml = newHtml.split('\n').join('</pre><pre>');
+				newHtml = newHtml.replace(/<code/g, '<pre').replace(/<\/code>/g, '</pre>');
 			}
+
+			/* eslint-enable no-magic-numbers */
 
 			// if a new HTML is defined, override default paste behaviour
 			if (newHtml) {
@@ -725,6 +775,9 @@ var EditableContent = function (_React$Component) {
 				return true;
 			}
 		}
+
+		// eslint-disable-next-line consistent-return
+
 	}, {
 		key: 'blockRenderer',
 		value: function blockRenderer(block) {
@@ -735,9 +788,10 @@ var EditableContent = function (_React$Component) {
 					editable: false
 				};
 			}
-
-			return null;
 		}
+
+		// eslint-disable-next-line consistent-return
+
 	}, {
 		key: 'myBlockStyleFn',
 		value: function myBlockStyleFn(contentBlock) {
@@ -757,12 +811,68 @@ var EditableContent = function (_React$Component) {
 			var entityData = entity.getData();
 			var entityType = entity.getType();
 
-			var media = void 0;
+			var media = null;
 			if (entityType === 'IMAGE') {
 				media = _react2.default.createElement(_Image2.default, { src: entityData.src, align: entityData.align, entityKey: entityKey, contentState: props.contentState, removeImage: this.removeImage });
 			}
 
 			return media;
+		}
+	}, {
+		key: 'addCompositeDecorators',
+		value: function addCompositeDecorators(editorState) {
+			var _this7 = this;
+
+			if (editorState.getDecorator() !== null) {
+				return editorState;
+			}
+
+			var decorators = new _draftJs.CompositeDecorator([{
+				strategy: _Link2.default.findLinkEntities,
+				component: function component(props) {
+					return _react2.default.createElement(_Link2.default, _extends({
+						showLinkToolbar: _this7.showLinkToolbar,
+						hideLinkToolbar: _this7.hideLinkToolbar
+					}, props));
+				}
+			}]);
+
+			return _draftJs.EditorState.set(editorState, { decorator: decorators });
+		}
+	}, {
+		key: 'rawContentToEditorState',
+		value: function rawContentToEditorState(rawContentInput) {
+
+			// check if empty object
+			var editorStateWithoutDecorators = function (rawContent) {
+
+				// check if empty object
+				if (Object.keys(rawContent).length === 0) {
+					return _draftJs.EditorState.createEmpty();
+				}
+
+				// add empty entity map if doesnt exist
+				if (!rawContent.entityMap) {
+					rawContent.entityMap = {};
+				}
+
+				// process blocks
+				rawContent.blocks.forEach(function (block) {
+
+					// convert HTML special chars to normal chars - e.g. '&lt;' ==> '<'
+					var tempElement = document.createElement('textarea');
+					tempElement.innerHTML = block.text;
+					block.text = tempElement.value;
+
+					// make sure depth properties are integers, or else Draft hangs
+					block.depth = parseInt(block.depth);
+				});
+
+				// create editorState
+				return _draftJs.EditorState.createWithContent((0, _draftJs.convertFromRaw)(rawContent));
+			}(rawContentInput);
+
+			return this.addCompositeDecorators(editorStateWithoutDecorators);
 		}
 	}]);
 
@@ -828,13 +938,23 @@ var Link = function (_React$Component) {
 	_createClass(Link, [{
 		key: 'onMouseOver',
 		value: function onMouseOver() {
-			var linkPosition = this.refs.link.getBoundingClientRect();
-			this.props.showLinkToolbar(linkPosition, this);
+			var showLinkToolbar = this.props.showLinkToolbar;
+
+
+			if (showLinkToolbar) {
+				var linkPosition = this.refs.link.getBoundingClientRect();
+				showLinkToolbar(linkPosition, this);
+			}
 		}
 	}, {
 		key: 'onMouseLeave',
 		value: function onMouseLeave() {
-			this.props.hideLinkToolbar();
+			var hideLinkToolbar = this.props.hideLinkToolbar;
+
+
+			if (hideLinkToolbar) {
+				hideLinkToolbar();
+			}
 		}
 	}, {
 		key: 'onUrlChange',
@@ -960,8 +1080,11 @@ var Image = function (_React$Component) {
 		key: 'scaleOut',
 		value: function scaleOut() {
 			if (this.state.originalWidth) {
+
+				var INCREMENT = 50;
+
 				this.setState({
-					imageWidth: this.state.imageWidth + 50
+					imageWidth: this.state.imageWidth + INCREMENT
 				});
 			}
 		}
@@ -969,8 +1092,11 @@ var Image = function (_React$Component) {
 		key: 'scaleIn',
 		value: function scaleIn() {
 			if (this.state.originalWidth) {
+
+				var DECREMENT = 50;
+
 				this.setState({
-					imageWidth: this.state.imageWidth - 50
+					imageWidth: this.state.imageWidth - DECREMENT
 				});
 			}
 		}
@@ -983,13 +1109,13 @@ var Image = function (_React$Component) {
 		}
 	}, {
 		key: 'onMouseDown',
-		value: function onMouseDown(e) {
-			e.preventDefault();
+		value: function onMouseDown(event) {
+			event.preventDefault();
 		}
 	}, {
 		key: 'onKeyPress',
-		value: function onKeyPress(e) {
-			e.preventDefault();
+		value: function onKeyPress(event) {
+			event.preventDefault();
 		}
 	}, {
 		key: 'onImageLoaded',
@@ -1003,7 +1129,7 @@ var Image = function (_React$Component) {
 		key: 'render',
 		value: function render() {
 
-			var alignStyle = void 0;
+			var alignStyle = null;
 			switch (this.state.align) {
 				case 'left':
 					alignStyle = {
@@ -1024,19 +1150,17 @@ var Image = function (_React$Component) {
 						width: '100%'
 					};
 					break;
+
+				default:
+					return null;
 			}
 
-			var imageStyle = void 0;
-			if (this.state.originalWidth) {
-				imageStyle = {
-					width: this.state.imageWidth,
-					zIndex: -1
-				};
-			} else {
-				imageStyle = {
-					zIndex: -1
-				};
-			}
+			var imageStyle = this.state.originalWidth ? {
+				width: this.state.imageWidth,
+				zIndex: -1
+			} : {
+				zIndex: -1
+			};
 
 			return _react2.default.createElement(
 				'div',
@@ -1067,7 +1191,6 @@ var Image = function (_React$Component) {
 }(_react2.default.Component);
 
 exports.default = Image;
-;
 
 /***/ }),
 /* 11 */
@@ -1225,19 +1348,17 @@ var LinkToolbar = function (_React$Component) {
 		}
 	}, {
 		key: 'onUrlChange',
-		value: function onUrlChange(e) {
-			var newVal = e.target.value;
-			this.forceUpdate();
+		value: function onUrlChange(event) {
+			var newVal = event.target.value;
 			this.props.linkComponent.onUrlChange(newVal);
-			this.forceUpdate();
+			this.props.onChange();
 		}
 	}, {
 		key: 'onNewWindowOptionChange',
-		value: function onNewWindowOptionChange(e) {
-			var newVal = e.target.checked ? '_blank' : '_self';
-			this.forceUpdate();
+		value: function onNewWindowOptionChange(event) {
+			var newVal = event.target.checked ? '_blank' : '_self';
 			this.props.linkComponent.onNewWindowOptionChange(newVal);
-			this.forceUpdate();
+			this.props.onChange();
 		}
 	}, {
 		key: 'render',
@@ -1311,7 +1432,27 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var INLINE_STYLE = 0;
 var LINK = 1;
 
-var TOOLBAR_ITEMS = [{ id_: 'BOLD', label: 'B', type: INLINE_STYLE }, { id_: 'ITALIC', label: 'I', type: INLINE_STYLE }, { id_: 'UNDERLINE', label: 'U', type: INLINE_STYLE }, { id_: 'STRIKETHROUGH', label: 'abc', type: INLINE_STYLE }, { id_: 'LINK', label: 'url', type: LINK }];
+var TOOLBAR_ITEMS = [{
+	typeId: 'BOLD',
+	label: 'B',
+	styleType: INLINE_STYLE
+}, {
+	typeId: 'ITALIC',
+	label: 'I',
+	styleType: INLINE_STYLE
+}, {
+	typeId: 'UNDERLINE',
+	label: 'U',
+	styleType: INLINE_STYLE
+}, {
+	typeId: 'STRIKETHROUGH',
+	label: 'abc',
+	styleType: INLINE_STYLE
+}, {
+	typeId: 'LINK',
+	label: 'url',
+	styleType: LINK
+}];
 
 var InlineToolbar = function (_React$Component) {
 	_inherits(InlineToolbar, _React$Component);
@@ -1363,7 +1504,10 @@ var InlineToolbar = function (_React$Component) {
 			}
 
 			var _props$position = this.props.position,
-			    position = _props$position === undefined ? { top: 0, left: 0 } : _props$position;
+			    position = _props$position === undefined ? {
+				top: 0,
+				left: 0
+			} : _props$position;
 
 
 			var styleExp = {
@@ -1380,11 +1524,11 @@ var InlineToolbar = function (_React$Component) {
 					{ className: 'toolbar-icons' },
 					TOOLBAR_ITEMS.map(function (item) {
 						return _react2.default.createElement(_ToolbarIcon2.default, {
-							key: item.id_,
-							id_: item.id_,
-							type: item.type,
+							key: item.typeId,
+							type: item.typeId,
+							styleType: item.styleType,
 							label: item.label,
-							active: currentStyle.has(item.id_) || entityType === item.id_,
+							active: currentStyle.has(item.typeId) || entityType === item.typeId,
 							onToggle: _this2.onToggle
 						});
 					})
@@ -1454,8 +1598,8 @@ var SideToolbar = function (_React$Component) {
 		}
 	}, {
 		key: 'onMouseDown',
-		value: function onMouseDown(e) {
-			e.preventDefault();
+		value: function onMouseDown(event) {
+			event.preventDefault();
 		}
 	}, {
 		key: 'showUnderConstruction',
@@ -1464,10 +1608,12 @@ var SideToolbar = function (_React$Component) {
 		}
 	}, {
 		key: 'promptForImage',
-		value: function promptForImage(e) {
+		value: function promptForImage(event) {
 			var url = prompt('Enter URL', 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png');
-			if (url !== null) this.props.addImage(url);
-			e.preventDefault();
+			if (url !== null) {
+				this.props.addImage(url);
+			}
+			event.preventDefault();
 		}
 	}, {
 		key: 'render',
@@ -1521,7 +1667,37 @@ var SideToolbar = function (_React$Component) {
 exports.default = SideToolbar;
 
 
-var BLOCK_TYPES = [{ id_: 'header-one', label: 'H1' }, { id_: 'header-two', label: 'H2' }, { id_: 'header-three', label: 'H3' }, { id_: 'header-four', label: 'H4' }, { id_: 'header-five', label: 'H5' }, { id_: 'header-six', label: 'H6' }, { id_: 'blockquote', label: '"' }, { id_: 'ordered-list-item', label: _react2.default.createElement('img', { src: __webpack_require__(24) }) }, { id_: 'unordered-list-item', label: _react2.default.createElement('img', { src: __webpack_require__(25) }) }, { id_: 'code-block', label: '<code>' }];
+var BLOCK_TYPES = [{
+	typeId: 'header-one',
+	label: 'H1'
+}, {
+	typeId: 'header-two',
+	label: 'H2'
+}, {
+	typeId: 'header-three',
+	label: 'H3'
+}, {
+	typeId: 'header-four',
+	label: 'H4'
+}, {
+	typeId: 'header-five',
+	label: 'H5'
+}, {
+	typeId: 'header-six',
+	label: 'H6'
+}, {
+	typeId: 'blockquote',
+	label: '"'
+}, {
+	typeId: 'ordered-list-item',
+	label: _react2.default.createElement('img', { src: __webpack_require__(24) })
+}, {
+	typeId: 'unordered-list-item',
+	label: _react2.default.createElement('img', { src: __webpack_require__(25) })
+}, {
+	typeId: 'code-block',
+	label: '<code>'
+}];
 
 var BlockSettings = function (_React$Component2) {
 	_inherits(BlockSettings, _React$Component2);
@@ -1562,10 +1738,10 @@ var BlockSettings = function (_React$Component2) {
 					{ className: 'toolbar-icons' },
 					BLOCK_TYPES.map(function (blockType) {
 						return _react2.default.createElement(_ToolbarIcon2.default, {
-							key: blockType.id_,
-							id_: blockType.id_,
+							key: blockType.typeId,
+							type: blockType.typeId,
 							label: blockType.label,
-							active: currentBlockType === blockType.id_,
+							active: currentBlockType === blockType.typeId,
 							onToggle: _this3.onToggle
 						});
 					})
@@ -1653,7 +1829,9 @@ var getSelectedBlockElement = exports.getSelectedBlockElement = function getSele
 	var node = selectionRange.startContainer;
 	do {
 		var nodeIsDataBlock = node.getAttribute ? node.getAttribute('data-block') : null;
-		if (nodeIsDataBlock) return node;
+		if (nodeIsDataBlock) {
+			return node;
+		}
 		node = node.parentNode;
 	} while (node !== null);
 	return null;
@@ -1663,22 +1841,27 @@ var getSelectionCoords = exports.getSelectionCoords = function getSelectionCoord
 	var editorBounds = editor.getBoundingClientRect();
 	var rangeBounds = selectionRange.getBoundingClientRect();
 	var rangeWidth = rangeBounds.right - rangeBounds.left;
-	var rangeHeight = rangeBounds.bottom - rangeBounds.top;
-	var offsetLeft = rangeBounds.left - editorBounds.left + rangeWidth / 2
-	// 175px is width of inline toolbar
-	- 175 / 2;
-	// 42px is height of inline toolbar (35px) + 5px center triangle and 2px for spacing
-	var offsetTop = rangeBounds.top - editorBounds.top - 42;
 
-	return { top: offsetTop, left: offsetLeft };
+	var INLINE_TOOLBAR_WIDTH = 175;
+	var offsetLeft = rangeBounds.left - editorBounds.left + rangeWidth / 2 - INLINE_TOOLBAR_WIDTH / 2;
+
+	var INLINE_TOOLBAR_HEIGHT = 35;
+	var CENTER_TRIANGLE_HEIGHT = 5;
+	var SPACING = 2;
+	var offsetTop = rangeBounds.top - editorBounds.top - (INLINE_TOOLBAR_HEIGHT + CENTER_TRIANGLE_HEIGHT + SPACING);
+
+	return {
+		top: offsetTop,
+		left: offsetLeft
+	};
 };
 
 var getEntityRange = exports.getEntityRange = function getEntityRange(editorState, entityKey) {
 
 	var blocks = editorState.getCurrentContent().getBlocksAsArray();
 
-	var entityRange = void 0;
-	blocks.some(function (block, index) {
+	var entityRange = null;
+	blocks.some(function (block) {
 		block.findEntityRanges(function (value) {
 			return value.get('entity') === entityKey;
 		}, function (start, end) {
@@ -1689,7 +1872,11 @@ var getEntityRange = exports.getEntityRange = function getEntityRange(editorStat
 				text: block.get('text').slice(start, end)
 			};
 		});
-		if (entityRange) return true;
+		if (entityRange) {
+			return true;
+		}
+
+		return false;
 	});
 
 	return entityRange;
@@ -1712,3 +1899,4 @@ var selectEntity = exports.selectEntity = function selectEntity(editorState, ent
 
 /***/ })
 /******/ ]);
+//# sourceMappingURL=editable-content.js.map

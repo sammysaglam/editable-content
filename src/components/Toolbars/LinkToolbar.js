@@ -5,11 +5,11 @@ export default class LinkToolbar extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.onMouseOver             = this.onMouseOver.bind(this);
-		this.onMouseLeave            = this.onMouseLeave.bind(this);
-		this.onUrlChange             = this.onUrlChange.bind(this);
+		this.onMouseOver = this.onMouseOver.bind(this);
+		this.onMouseLeave = this.onMouseLeave.bind(this);
+		this.onUrlChange = this.onUrlChange.bind(this);
 		this.onNewWindowOptionChange = this.onNewWindowOptionChange.bind(this);
-		this.onDeleteLink            = this.onDeleteLink.bind(this);
+		this.onDeleteLink = this.onDeleteLink.bind(this);
 	}
 
 	onMouseOver() {
@@ -25,18 +25,16 @@ export default class LinkToolbar extends React.Component {
 		this.props.hideLinkToolbar(false);
 	}
 
-	onUrlChange(e) {
-		const newVal = e.target.value;
-		this.forceUpdate();
+	onUrlChange(event) {
+		const newVal = event.target.value;
 		this.props.linkComponent.onUrlChange(newVal);
-		this.forceUpdate();
+		this.props.onChange();
 	}
 
-	onNewWindowOptionChange(e) {
-		const newVal = e.target.checked ? '_blank' : '_self';
-		this.forceUpdate();
+	onNewWindowOptionChange(event) {
+		const newVal = event.target.checked ? '_blank' : '_self';
 		this.props.linkComponent.onNewWindowOptionChange(newVal);
-		this.forceUpdate();
+		this.props.onChange();
 	}
 
 	render() {

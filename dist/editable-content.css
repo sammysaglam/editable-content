@@ -13,6 +13,8 @@
   .editable-content:not(.disabled) .DraftEditor-root {
     outline: 1px dotted #CC806B;
     overflow: auto; }
+    .editable-content:not(.disabled) .DraftEditor-root a:hover {
+      background-color: #FFB9B7; }
   .editable-content .DraftEditor-root {
     padding: 0; }
     .editable-content .DraftEditor-root .DraftEditor-editorContainer {
@@ -30,8 +32,6 @@
         -webkit-user-select: none; }
   .editable-content .DraftEditor-root a {
     cursor: pointer; }
-    .editable-content .DraftEditor-root a:hover {
-      background-color: #FFB9B7; }
   .editable-content .image-entity {
     display: inline-block; }
     .editable-content .image-entity > div {
@@ -238,3 +238,5 @@
         top: 64px; }
       .editable-content .side-toolbar .media-buttons.expanded span:nth-child(3) {
         top: 96px; }
+
+/*# sourceMappingURL=editable-content.css.map*/

@@ -6,14 +6,14 @@ export default class ToolbarIcon extends React.Component {
 		this.onMouseDown = this.onMouseDown.bind(this);
 	}
 
-	onMouseDown(e) {
-		this.props.onToggle(this.props.id_,this.props.type);
-		e.preventDefault() ;
+	onMouseDown(event) {
+		this.props.onToggle(this.props.type , this.props.styleType);
+		event.preventDefault();
 	}
 
 	render() {
 		return (
-			<li className={this.props.active ? 'active' : ''} onMouseDown={this.onMouseDown}><span className={this.props.id_.toLowerCase()}>{this.props.label}</span></li>
+			<li className={this.props.active ? 'active' : ''} onMouseDown={this.onMouseDown}><span className={this.props.type.toLowerCase()}>{this.props.label}</span></li>
 		)
 	}
 }

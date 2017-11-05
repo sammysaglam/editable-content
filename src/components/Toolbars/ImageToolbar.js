@@ -1,7 +1,6 @@
 import React from 'react';
 
-const ImageToolbar = (props) => {
-	return (
+const ImageToolbar = props => (
 		<div className="settings-menu">
 			<div onClick={props.scaleToOriginalSize}><img src={require('./img/original-size.png')}/></div>
 			<div onClick={props.scaleIn}><img src={require('./img/scale-in.png')}/></div>
@@ -12,6 +11,5 @@ const ImageToolbar = (props) => {
 			<div onClick={props.removeImage}>X</div>
 		</div>
 	);
-};
 
-export default ImageToolbar ;
+export default ImageToolbar;

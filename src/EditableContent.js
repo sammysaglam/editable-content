@@ -1,66 +1,24 @@
 import React from 'react';
-import $ from 'jquery' ;
+import jQuery from 'jquery';
 import {Editor , EditorState , ContentState , Modifier , RichUtils , AtomicBlockUtils , CompositeDecorator , convertToRaw , convertFromRaw , convertFromHTML} from 'draft-js';
 import {convertToHTML} from 'draft-convert';
 
-import Link from './components/Entities/Link' ;
-import Image from './components/Entities/Image' ;
-import LinkToolbar from "./components/Toolbars/LinkToolbar";
-import InlineToolbar from './components/Toolbars/InlineToolbar' ;
-import SideToolbar from './components/Toolbars/SideToolbar' ;
+import Link from './components/Entities/Link';
+import Image from './components/Entities/Image';
+import LinkToolbar from './components/Toolbars/LinkToolbar';
+import InlineToolbar from './components/Toolbars/InlineToolbar';
+import SideToolbar from './components/Toolbars/SideToolbar';
 
 import {utils} from './utils/entry.js';
 
 class EditableContent extends React.Component {
-
 	constructor(props) {
 		super(props);
 
 		this.sideToolbarTimeout = null;
 		this.linkToolbarTimeout = null;
 
-		const decorators = new CompositeDecorator([
-			{
-				strategy:Link.findLinkEntities ,
-				component:(props) => {
-					return (
-						<Link
-							showLinkToolbar={this.showLinkToolbar}
-							hideLinkToolbar={this.hideLinkToolbar}
-							{...props}
-						/>
-					);
-				}
-			}
-		]);
-
-		let editorState;
-		const {rawContent = {}} = this.props;
-		if ( !rawContent.blocks ) {
-			editorState = EditorState.createEmpty(decorators);
-		} else {
-
-			// add empty entity map if doesnt exist
-			if ( !rawContent.entityMap ) rawContent.entityMap = {};
-
-			// process blocks
-			rawContent.blocks.forEach(function(block , index) {
-
-				// convert HTML special chars to normal chars - e.g. '&lt;' ==> '<'
-				const tempElement = document.createElement("textarea");
-				tempElement.innerHTML = block.text;
-				block.text = tempElement.value;
-
-				// make sure depth properties are integers, or else Draft hangs
-				block.depth = parseInt(block.depth);
-			});
-
-			// create editorState
-			editorState = EditorState.createWithContent(convertFromRaw(rawContent) , decorators);
-		}
-
 		this.state = {
-			editorState:editorState ,
 			inlineToolbar:{show:false} ,
 			linkToolbar:{show:false} ,
 			sideToolbar:{isExpanded:false}
@@ -86,9 +44,11 @@ class EditableContent extends React.Component {
 		this.handlePastedText = this.handlePastedText.bind(this);
 		this.blockRenderer = this.blockRenderer.bind(this);
 		this.mediaBlockRenderer = this.mediaBlockRenderer.bind(this);
-	};
+	}
 
 	onChange(editorState) {
+
+		const {updateContents , saveContents} = this.props;
 
 		// is selection is not collapsed, show the inlineToolbar for formatting the selection
 		const selection = utils.selection.getSelection();
@@ -116,20 +76,33 @@ class EditableContent extends React.Component {
 		const rawContent = convertToRaw(editorState.getCurrentContent());
 
 		this.setState({
-			editorState ,
 			htmlContent:newHtmlContent
 		});
 
-		if ( this.props.saveFn && newHtmlContent !== oldHtmlContent ) {
-			this.props.saveFn(newHtmlContent , rawContent);
+		// update redux state
+		updateContents(this.addCompositeDecorators(editorState));
+
+		// call save function on change
+		if ( saveContents && newHtmlContent !== oldHtmlContent ) {
+			saveContents(rawContent , newHtmlContent);
 		}
 
 		setTimeout(this.updateSelection , 0);
 	}
 
+	componentWillReceiveProps(nextProps) {
+
+		// call onChange to add composite decorators if they dont exist yet
+		if ( nextProps.editorState.getDecorator() === null ) {
+			this.onChange(nextProps.editorState);
+		}
+	}
+
 	contentStateToHTML(contentState) {
 		const html = convertToHTML({
-			styleToHTML:(style) => {
+
+			// eslint-disable-next-line consistent-return
+			styleToHTML:style => {
 				if ( style === 'BOLD' ) {
 					return <strong/>;
 				} else if ( style === 'UNDERLINE' ) {
@@ -138,7 +111,9 @@ class EditableContent extends React.Component {
 					return <span style={{textDecoration:'line-through'}}/>;
 				}
 			} ,
-			blockToHTML:(block) => {
+
+			// eslint-disable-next-line consistent-return
+			blockToHTML:block => {
 				if ( block.type === 'code-block' ) {
 					return {
 						start:'<code class="code-line">' ,
@@ -164,8 +139,8 @@ class EditableContent extends React.Component {
 
 				} else if ( entity.type === 'IMAGE' ) {
 
-					let alignStyle;
-					let floatStyle;
+					let alignStyle = null;
+					let floatStyle = null;
 					switch (entity.data.align) {
 						case 'left':
 							alignStyle = '';
@@ -181,6 +156,10 @@ class EditableContent extends React.Component {
 							alignStyle = 'text-align:center ;';
 							floatStyle = 'float:none ;';
 							break;
+
+						// error
+						default:
+							return null;
 					}
 
 					return `<div style="${alignStyle}"><img src='${entity.data.src}' style='${floatStyle}' /></div>`;
@@ -195,7 +174,7 @@ class EditableContent extends React.Component {
 
 	updateSelection() {
 		const selectionRange = utils.selection.getSelection().range;
-		let selectedBlock;
+		let selectedBlock = null;
 		if ( selectionRange ) {
 			selectedBlock = utils.selection.getSelectedBlockElement(selectionRange);
 		}
@@ -206,7 +185,10 @@ class EditableContent extends React.Component {
 	}
 
 	handleKeyCommand(command) {
-		const newState = RichUtils.handleKeyCommand(this.state.editorState , command);
+
+		const {editorState} = this.props;
+
+		const newState = RichUtils.handleKeyCommand(editorState , command);
 		if ( newState ) {
 			this.onChange(newState);
 			return 'handled';
@@ -215,9 +197,9 @@ class EditableContent extends React.Component {
 		return 'not-handled';
 	}
 
-	onTab(e) {
+	onTab(event) {
 
-		const {editorState} = this.state;
+		const {editorState} = this.props;
 		const contentState = editorState.getCurrentContent();
 		const selectionState = editorState.getSelection();
 		const selectionKey = selectionState.getStartKey();
@@ -226,7 +208,7 @@ class EditableContent extends React.Component {
 
 		if ( blockType === 'ordered-list-item' || blockType === 'unordered-list-item' ) {
 			const maxDepth = 9;
-			this.onChange(RichUtils.onTab(e , this.state.editorState , maxDepth));
+			this.onChange(RichUtils.onTab(event , editorState , maxDepth));
 
 		} else {
 
@@ -240,28 +222,33 @@ class EditableContent extends React.Component {
 			const tabAdded = Modifier.insertText(
 				rangeRemovedState.getCurrentContent() ,
 				rangeRemovedState.getSelection() ,
-				"   "
+				'   '
 			);
 
 			const newState = EditorState.push(editorState , tabAdded , 'tab-added');
 			this.onChange(newState);
 
-			e.preventDefault();
+			event.preventDefault();
 		}
 	}
 
 	toggleStyle(id) {
-		const newState = RichUtils.toggleInlineStyle(this.state.editorState , id);
+		const {editorState} = this.props;
+
+		const newState = RichUtils.toggleInlineStyle(editorState , id);
 		this.onChange(newState);
 	}
 
 	toggleLink(url) {
-		const {editorState} = this.state;
+		const {editorState} = this.props;
 		const contentState = editorState.getCurrentContent();
 		const contentStateWithEntity = contentState.createEntity(
 			'LINK' ,
 			'MUTABLE' ,
-			{url:url , target:'_self'}
+			{
+				url ,
+				target:'_self'
+			}
 		);
 		const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
 		const newEditorState = EditorState.set(editorState , {currentContent:contentStateWithEntity});
@@ -274,7 +261,7 @@ class EditableContent extends React.Component {
 	}
 
 	removeLink(entityKey) {
-		const {editorState} = this.state;
+		const {editorState} = this.props;
 
 		const entityRange = utils.selection.getEntityRange(editorState , entityKey);
 		const selection = editorState.getSelection();
@@ -293,12 +280,15 @@ class EditableContent extends React.Component {
 	}
 
 	addImage(url) {
-		const {editorState} = this.state;
+		const {editorState} = this.props;
 		const contentState = editorState.getCurrentContent();
 		const contentStateWithEntity = contentState.createEntity(
 			'IMAGE' ,
 			'IMMUTABLE' ,
-			{src:url , align:'left'}
+			{
+				src:url ,
+				align:'left'
+			}
 		);
 		const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
 		const newEditorState = EditorState.set(editorState , {currentContent:contentStateWithEntity});
@@ -312,7 +302,7 @@ class EditableContent extends React.Component {
 
 
 	removeImage(entityKey) {
-		const {editorState} = this.state;
+		const {editorState} = this.props;
 
 		const entityRange = utils.selection.getEntityRange(editorState , entityKey);
 		const selection = editorState.getSelection();
@@ -339,7 +329,9 @@ class EditableContent extends React.Component {
 	}
 
 	toggleBlockType(id) {
-		const newState = RichUtils.toggleBlockType(this.state.editorState , id);
+		const {editorState} = this.props;
+
+		const newState = RichUtils.toggleBlockType(editorState , id);
 		this.onChange(newState);
 	}
 
@@ -349,18 +341,29 @@ class EditableContent extends React.Component {
 	}
 
 	collapseSideToolbar() {
+
+		const TIME_TO_HIDE = 200;
+
 		this.sideToolbarTimeout = setTimeout(() => {
 			this.setState({sideToolbar:{isExpanded:false}});
-		} , 200);
+		} , TIME_TO_HIDE);
 	}
 
+	// eslint-disable-next-line consistent-return
 	showLinkToolbar(linkPosition , linkComponent) {
+
+		if ( !this ) {
+			return false;
+		}
+
+		const {linkToolbar} = this.state;
+		const TOOLBAR_OFFSET_TOP = -45;
 
 		if ( linkComponent ) {
 
 			const containerPosition = this.refs.container.getBoundingClientRect();
 			const toolbarPosition = {
-				top:linkPosition.top - containerPosition.top - 45 ,
+				top:linkPosition.top - containerPosition.top + TOOLBAR_OFFSET_TOP ,
 				left:linkPosition.left - containerPosition.left
 			};
 
@@ -368,13 +371,13 @@ class EditableContent extends React.Component {
 				linkToolbar:{
 					show:true ,
 					position:toolbarPosition ,
-					linkComponent:linkComponent
+					linkComponent
 				}
 			});
 
 		} else {
 
-			const linkToolbarSettings = this.state.linkToolbar;
+			const linkToolbarSettings = linkToolbar;
 			linkToolbarSettings.show = true;
 			this.setState({
 				linkToolbar:linkToolbarSettings
@@ -384,23 +387,32 @@ class EditableContent extends React.Component {
 		clearTimeout(this.linkToolbarTimeout);
 	}
 
+	// eslint-disable-next-line consistent-return
 	hideLinkToolbar(timeout = true) {
+
+		if ( !this ) {
+			return false;
+		}
+
+		const TIME_TO_HIDE = 400;
+
 		this.linkToolbarTimeout = setTimeout(() => {
 			this.setState({linkToolbar:{show:false}});
-		} , timeout ? 200 : 0);
+		} , timeout ? TIME_TO_HIDE : 0);
 	}
 
 	render() {
-		const {editorState , selectedBlock} = this.state;
+		const {editorState} = this.props;
+		const {selectedBlock , inlineToolbar , sideToolbar , linkToolbar} = this.state;
 		const editor = this.refs.container;
 
 		// get selectedBlock, and make sure it is the child of the editor
 		let sideToolbarOffsetTop = 0;
 		if ( selectedBlock && ((parent , child) => {
 
-				var node = child.parentNode;
-				while ( node != null ) {
-					if ( node == parent ) {
+				let node = child.parentNode;
+				while ( node !== null ) {
+					if ( node === parent ) {
 						return true;
 					}
 					node = node.parentNode;
@@ -414,18 +426,25 @@ class EditableContent extends React.Component {
 			const editorBounds = editor.getBoundingClientRect();
 			const blockBounds = selectedBlock.getBoundingClientRect();
 
-			sideToolbarOffsetTop = (blockBounds.top - editorBounds.top) - (blockBounds.top - blockBounds.bottom) / 2 - 16;
+			// eslint-disable-next-line no-magic-numbers
+			sideToolbarOffsetTop = (blockBounds.top - editorBounds.top) - ((blockBounds.top - blockBounds.bottom) / 2) - 16;
 		}
 
+		// if editorState not defined then is loading
+		if ( !this.props.editorState ) {
+			return <div className="editable-content">loading...</div>;
+		}
+
+		// return
 		return (
-			<div className={`editable-content ${this.props.disabled === true ? "disabled" : ""}`} ref="container">
+			<div className={`editable-content ${this.props.disabled === true ? 'disabled' : ''}`} ref="container">
 				{
 					this.props.disabled !== true && <InlineToolbar
 						editorState={editorState}
-						showToolbar={this.state.inlineToolbar.show && !this.state.sideToolbar.isExpanded}
+						showToolbar={inlineToolbar.show && !sideToolbar.isExpanded}
 						toggleStyle={this.toggleStyle}
 						toggleLink={this.toggleLink}
-						position={this.state.inlineToolbar.position}
+						position={inlineToolbar.position}
 					/>
 				}
 				{
@@ -438,7 +457,7 @@ class EditableContent extends React.Component {
 							addImage={this.addImage}
 							expandSideToolbar={this.expandSideToolbar}
 							collapseSideToolbar={this.collapseSideToolbar}
-							isExpanded={this.state.sideToolbar.isExpanded}
+							isExpanded={sideToolbar.isExpanded}
 						/>
 
 						:
@@ -446,14 +465,15 @@ class EditableContent extends React.Component {
 						null
 				}
 				{
-					this.props.disabled !== true && this.state.linkToolbar.show && !this.state.sideToolbar.isExpanded && !this.state.inlineToolbar.show ?
+					this.props.disabled !== true && linkToolbar.show && !sideToolbar.isExpanded && !inlineToolbar.show ?
 
 						<LinkToolbar
-							position={this.state.linkToolbar.position}
-							linkComponent={this.state.linkToolbar.linkComponent}
+							position={linkToolbar.position}
+							linkComponent={linkToolbar.linkComponent}
 							removeLink={this.removeLink}
 							showLinkToolbar={this.showLinkToolbar}
 							hideLinkToolbar={this.hideLinkToolbar}
+							onChange={() => this.onChange(editorState)}
 						/>
 
 						:
@@ -461,7 +481,7 @@ class EditableContent extends React.Component {
 						null
 				}
 				<Editor
-					editorState={this.state.editorState}
+					editorState={editorState}
 					spellCheck={true}
 					blockRendererFn={this.blockRenderer}
 					blockStyleFn={this.myBlockStyleFn}
@@ -471,57 +491,62 @@ class EditableContent extends React.Component {
 					readOnly={this.props.disabled === true}
 					handleKeyCommand={this.handleKeyCommand}
 					ref="editor"
-					placeholder={this.props.disabled ? "" : "Enter some text..."}
+					placeholder={this.props.disabled ? '' : 'Enter some text...'}
 				/>
 			</div>
 		);
 	}
 
+	// eslint-disable-next-line consistent-return
 	handlePastedText(text , html) {
 
 		// build html into DOM elements
-		const {editorState} = this.state;
-		const domObject = $(html);
+		const {editorState} = this.props;
+		const domObject = jQuery(html);
 
-		let newHtml;
+		let newHtml = null;
+
+		/* eslint-disable no-magic-numbers */
 
 		// check if code is being pasted
-		if ( $(domObject).eq(1).prop('tagName') && $(domObject).eq(1).prop('tagName').toLowerCase() === 'pre' ) {
+		if ( jQuery(domObject).eq(1).prop('tagName') && jQuery(domObject).eq(1).prop('tagName').toLowerCase() === 'pre' ) {
 
 			// retrieve pasted HTML and convert all line breaks to <pre> tags
 			newHtml = domObject.eq(1).html();
-			newHtml = "<pre>" + newHtml.split("<br>").join("</pre><pre>") + "</pre>";
+			newHtml = '<pre>' + newHtml.split('<br>').join('</pre><pre>') + '</pre>';
 
 		} else if ( domObject.eq(2).prop('tagName') && domObject.eq(2).prop('tagName').toLowerCase() === 'pre' ) {
 
 			// loop through all code lines, and convert to simple text
 			newHtml = '';
-			domObject.eq(2).find("> pre").each(function(index , element) {
-				newHtml += '<pre>' + $(element).text() + '</pre>';
+			domObject.eq(2).find('> pre').each((index , element) => {
+				newHtml += '<pre>' + jQuery(element).text() + '</pre>';
 			});
 
 			// if the above didnt work, try the following
 			if ( !newHtml ) {
 				newHtml = domObject.eq(2).html();
-				newHtml = newHtml.split("\n").join("</code><code>");
-				newHtml = newHtml.replace(/<code/g , '<pre').replace(/<\/code>/g , '<\/pre>');
+				newHtml = newHtml.split('\n').join('</code><code>');
+				newHtml = newHtml.replace(/<code/g , '<pre').replace(/<\/code>/g , '</pre>');
 			}
 
 		} else if ( domObject.eq(2).prop('tagName') && domObject.eq(2).prop('tagName').toLowerCase() === 'code' ) {
 
 			// retrieve pasted HTML and convert all line breaks to <pre> tags
 			newHtml = domObject.eq(2).html();
-			newHtml = "<pre>" + newHtml.split("<br>").join("</pre><pre>") + "</pre>";
-			newHtml = newHtml.replace(/<code/g , '<pre').replace(/<\/code>/g , '<\/pre>');
+			newHtml = '<pre>' + newHtml.split('<br>').join('</pre><pre>') + '</pre>';
+			newHtml = newHtml.replace(/<code/g , '<pre').replace(/<\/code>/g , '</pre>');
 
-		} else if ( domObject.eq(2).find("> .phpcode > code").length === 1 ) {
+		} else if ( domObject.eq(2).find('> .phpcode > code').length === 1 ) {
 
 			// retrieve pasted HTML and convert all line breaks to <pre> tags
-			newHtml = domObject.eq(2).find("> .phpcode > code").html();
-			newHtml = "<pre>" + newHtml.split("<br>").join("</pre><pre>") + "</pre>";
-			newHtml = newHtml.split("\n").join("</pre><pre>");
-			newHtml = newHtml.replace(/<code/g , '<pre').replace(/<\/code>/g , '<\/pre>');
+			newHtml = domObject.eq(2).find('> .phpcode > code').html();
+			newHtml = '<pre>' + newHtml.split('<br>').join('</pre><pre>') + '</pre>';
+			newHtml = newHtml.split('\n').join('</pre><pre>');
+			newHtml = newHtml.replace(/<code/g , '<pre').replace(/<\/code>/g , '</pre>');
 		}
+
+		/* eslint-enable no-magic-numbers */
 
 		// if a new HTML is defined, override default paste behaviour
 		if ( newHtml ) {
@@ -549,6 +574,7 @@ class EditableContent extends React.Component {
 		}
 	}
 
+	// eslint-disable-next-line consistent-return
 	blockRenderer(block) {
 
 		if ( block.getType() === 'atomic' ) {
@@ -557,10 +583,9 @@ class EditableContent extends React.Component {
 				editable:false
 			};
 		}
-
-		return null;
 	}
 
+	// eslint-disable-next-line consistent-return
 	myBlockStyleFn(contentBlock) {
 		const type = contentBlock.getType();
 
@@ -578,12 +603,69 @@ class EditableContent extends React.Component {
 		const entityData = entity.getData();
 		const entityType = entity.getType();
 
-		let media;
+		let media = null;
 		if ( entityType === 'IMAGE' ) {
 			media = <Image src={entityData.src} align={entityData.align} entityKey={entityKey} contentState={props.contentState} removeImage={this.removeImage}/>;
 		}
 
 		return media;
+	}
+
+	addCompositeDecorators(editorState) {
+
+		if ( editorState.getDecorator() !== null ) {
+			return editorState;
+		}
+
+		const decorators = new CompositeDecorator([
+			{
+				strategy:Link.findLinkEntities ,
+				component:props => (
+					<Link
+						showLinkToolbar={this.showLinkToolbar}
+						hideLinkToolbar={this.hideLinkToolbar}
+						{...props}
+					/>
+				)
+			}
+		]);
+
+		return EditorState.set(editorState , {decorator:decorators});
+	}
+
+	rawContentToEditorState(rawContentInput) {
+
+		// check if empty object
+		const editorStateWithoutDecorators = (rawContent => {
+
+			// check if empty object
+			if ( Object.keys(rawContent).length === 0 ) {
+				return EditorState.createEmpty();
+			}
+
+			// add empty entity map if doesnt exist
+			if ( !rawContent.entityMap ) {
+				rawContent.entityMap = {};
+			}
+
+			// process blocks
+			rawContent.blocks.forEach(block => {
+
+				// convert HTML special chars to normal chars - e.g. '&lt;' ==> '<'
+				const tempElement = document.createElement('textarea');
+				tempElement.innerHTML = block.text;
+				block.text = tempElement.value;
+
+				// make sure depth properties are integers, or else Draft hangs
+				block.depth = parseInt(block.depth);
+			});
+
+			// create editorState
+			return EditorState.createWithContent(convertFromRaw(rawContent));
+
+		})(rawContentInput);
+
+		return this.addCompositeDecorators(editorStateWithoutDecorators);
 	}
 
 }

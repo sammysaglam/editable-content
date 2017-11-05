@@ -1,6 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const ImageminPlugin = require('imagemin-webpack-plugin').default;
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const isProduction = process.argv.indexOf('-p') !== -1;
 const glob = require("glob");
@@ -24,20 +26,11 @@ const plugins = [
 	extractCSS
 ];
 
-if ( isProduction ) {
-	plugins.push(new UglifyJSPlugin({
-		uglifyOptions:{
-			compress:true ,
-			output:{
-				comments:false
-			}
-		}
-	}));
-}
-const outputFilename = !isProduction ? '[name].js' : '[name].min.js';
-
 module.exports = [
+
+	// var export for browser environments
 	{
+		...(isProduction ? {} : {devtool:'source-map'}) ,
 		entry:{
 			'editable-content':[
 				'./src/EditableContent.scss' ,
@@ -47,7 +40,7 @@ module.exports = [
 		} ,
 		output:{
 			path:path.resolve('./dist') ,
-			filename:outputFilename ,
+			filename:isProduction ? '[name].min.js' : '[name].js' ,
 			library:'EditableContent' ,
 			libraryTarget:'var'
 		} ,
@@ -65,7 +58,23 @@ module.exports = [
 				{test:/EditableContent\.scss$/ , loader:extractCSS.extract(['css-loader' , 'sass-loader'])}
 			]
 		} ,
-		plugins:plugins
+		plugins:[
+			...plugins ,
+			...(isProduction ? [
+				new ImageminPlugin() ,
+				new OptimizeCssAssetsPlugin({
+					assetNameRegExp:/\.(scss|css)$/g
+				}) ,
+				new UglifyJSPlugin({
+					uglifyOptions:{
+						compress:true ,
+						output:{
+							comments:false
+						}
+					}
+				})
+			] : [])
+		]
 	} ,
 
 	// build as umd module
@@ -85,9 +94,82 @@ module.exports = [
 			'draft-convert':'draft-convert' ,
 			'jquery':'jquery'
 		} ,
+		plugins:[
+			new UglifyJSPlugin({
+				uglifyOptions:{
+					compress:true ,
+					output:{
+						comments:false
+					}
+				}
+			})
+		] ,
 		module:{
 			rules:[
 				{test:/\.(jpg|png|svg)$/ , loader:'url-loader'} ,
+				{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/}
+			]
+		}
+	} ,
+
+	// build redux as var for browser env
+	{
+		entry:{
+			'editable-content-redux':'./src/redux/redux.js'
+		} ,
+		output:{
+			path:path.resolve('./dist') ,
+			filename:'[name].js' ,
+			library:'EditableContentRedux' ,
+			libraryTarget:'var'
+		} ,
+		externals:{
+			'draft-js':'Draft'
+		} ,
+		plugins:[
+			new UglifyJSPlugin({
+				uglifyOptions:{
+					compress:true ,
+					output:{
+						comments:false
+					}
+				}
+			})
+		] ,
+		module:{
+			rules:[
+				{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/}
+			]
+		}
+	} ,
+
+	// build redux UMD module
+	{
+		entry:{
+			'editable-content-redux':'./src/redux/redux.js'
+		} ,
+		output:{
+			path:path.resolve('./dist') ,
+			filename:'[name].umd.js' ,
+			library:'EditableContentRedux' ,
+			libraryTarget:'umd'
+		} ,
+		externals:{
+			'draft-js':'draft-js',
+			'superagent':'superagent'
+		} ,
+		plugins:[
+			new UglifyJSPlugin({
+				uglifyOptions:{
+					compress:true ,
+					output:{
+						comments:false
+					}
+				}
+			})
+		] ,
+		module:{
+			rules:[
 				{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/}
 			]
 		}

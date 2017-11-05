@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Editable Content with Redux</title>
+		<script src="https://unpkg.com/react@15.6.1/dist/react.js"></script>
+		<script src="https://unpkg.com/react-dom@15.6.1/dist/react-dom.js"></script>
+		<script src="https://unpkg.com/react-dom@15.6.1/dist/react-dom-server.js"></script>
+		<script src="https://unpkg.com/redux@3.7.2/dist/redux.js"></script>
+		<script src="https://unpkg.com/react-redux@5.0.5/dist/react-redux.js"></script>
+		<script src="https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.js"></script>
+		<script src="https://unpkg.com/babel-standalone@6.15.0/babel.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/draft-js/0.10.0/Draft.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+		<script src="../dist/vendor/draft-convert.js"></script>
+		<script src="../dist/editable-content.js"></script>
+		<script src="../dist/editable-content-redux.js"></script>
+		<link rel="stylesheet" href="../dist/editable-content.css"/>
+		<link rel="stylesheet" href="../dist/themes/theme-1.css"/>
+		<style>
+			.wrapper {
+				width  : 700px;
+				margin : auto;
+			}
+
+			h1 {
+				text-align : center;
+			}
+
+			.DraftEditor-root {
+				min-height : 200px;
+			}
+
+			.public-DraftEditorPlaceholder-inner {
+				padding-left : 20px;
+			}
+
+			#html-output {
+				border  : solid 1px #000000;
+				padding : 50px;
+			}
+
+			#raw-output {
+				border  : solid 1px #000000;
+				padding : 50px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrapper">
+			<h1>EditableContent Demo</h1>
+			<div id="editable-content" class="axe-editable_content"></div>
+
+			<h1>HTML output</h1>
+			<div id="html-output"></div>
+
+			<h1>Raw Content Output</h1>
+			<pre id="raw-output"></pre>
+		</div>
+		<script type="text/babel">
+
+			// adapters
+			const combineReducers = Redux.combineReducers;
+			const createStore = Redux.createStore;
+			const applyMiddleware = Redux.applyMiddleware;
+			const Provider = ReactRedux.Provider;
+
+			// import redux package
+			const editableContentRedux = EditableContentRedux('example');
+			const actionCreators = editableContentRedux.actionCreators('api/save-content.php');
+
+			// redux init
+			const reducers = combineReducers({
+				editableContent:editableContentRedux.createReducer()
+			});
+			const store = createStore(
+				reducers ,
+				applyMiddleware(ReduxThunk.default)
+			);
+
+			// react-redux connection
+			const mapStateToProps = (state , ownProps) => ({
+				editorState:state.editableContent.editorState.default
+			});
+			const mapDispatchToProps = dispatch => ({
+				updateContents:editorState => {
+					dispatch(actionCreators.updateContents(editorState))
+				} ,
+				saveContents:rawContent => {
+					dispatch(actionCreators.saveContents(rawContent))
+				}
+			});
+			const EditableContentContainer = ReactRedux.connect(
+				mapStateToProps ,
+				mapDispatchToProps
+			)(EditableContent);
+
+			// fetch data
+			fetch('api/load-content.php').then(response => response.json()).then(response => {
+				store.dispatch({
+					type:editableContentRedux.ACTIONS.UPDATE_CONTENTS ,
+					rawContent:response
+				});
+			});
+
+			// render
+			ReactDOM.render(
+				<Provider store={store}>
+					<EditableContentContainer disabled={false}/>
+				</Provider> ,
+				document.getElementById("editable-content")
+			);
+		</script>
+	</body>
+</html>

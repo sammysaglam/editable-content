@@ -7,19 +7,29 @@ export default class Link extends React.Component {
 
 		this.state = Object.assign(this.props.contentState.getEntity(this.props.entityKey).getData());
 
-		this.onMouseOver             = this.onMouseOver.bind(this);
-		this.onMouseLeave            = this.onMouseLeave.bind(this);
-		this.onUrlChange             = this.onUrlChange.bind(this);
+		this.onMouseOver = this.onMouseOver.bind(this);
+		this.onMouseLeave = this.onMouseLeave.bind(this);
+		this.onUrlChange = this.onUrlChange.bind(this);
 		this.onNewWindowOptionChange = this.onNewWindowOptionChange.bind(this);
 	}
 
 	onMouseOver() {
-		const linkPosition = this.refs.link.getBoundingClientRect();
-		this.props.showLinkToolbar(linkPosition , this);
+
+		const {showLinkToolbar} = this.props;
+
+		if ( showLinkToolbar ) {
+			const linkPosition = this.refs.link.getBoundingClientRect();
+			showLinkToolbar(linkPosition , this);
+		}
 	}
 
 	onMouseLeave() {
-		this.props.hideLinkToolbar();
+
+		const {hideLinkToolbar} = this.props;
+
+		if ( hideLinkToolbar ) {
+			hideLinkToolbar();
+		}
 	}
 
 	onUrlChange(newUrl) {
@@ -40,7 +50,7 @@ export default class Link extends React.Component {
 
 	static findLinkEntities(contentBlock , callback , contentState) {
 		contentBlock.findEntityRanges(
-			(character) => {
+			character => {
 				const entityKey = character.getEntity();
 				return (
 					entityKey !== null &&

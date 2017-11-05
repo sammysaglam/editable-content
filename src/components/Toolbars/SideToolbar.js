@@ -5,9 +5,9 @@ export default class SideToolbar extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.onMouseOver    = this.onMouseOver.bind(this);
-		this.onMouseLeave   = this.onMouseLeave.bind(this);
-		this.onMouseDown    = this.onMouseDown.bind(this);
+		this.onMouseOver = this.onMouseOver.bind(this);
+		this.onMouseLeave = this.onMouseLeave.bind(this);
+		this.onMouseDown = this.onMouseDown.bind(this);
 		this.promptForImage = this.promptForImage.bind(this);
 	}
 
@@ -19,18 +19,20 @@ export default class SideToolbar extends React.Component {
 		this.props.collapseSideToolbar();
 	}
 
-	onMouseDown(e) {
-		e.preventDefault();
+	onMouseDown(event) {
+		event.preventDefault();
 	}
 
 	showUnderConstruction() {
-		alert('Still under development!') ;
+		alert('Still under development!');
 	}
 
-	promptForImage(e) {
+	promptForImage(event) {
 		const url = prompt('Enter URL' , 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png');
-		if ( url !== null ) this.props.addImage(url);
-		e.preventDefault();
+		if ( url !== null ) {
+			this.props.addImage(url);
+		}
+		event.preventDefault();
 	}
 
 	render() {
@@ -65,16 +67,46 @@ export default class SideToolbar extends React.Component {
 }
 
 const BLOCK_TYPES = [
-	{id_:'header-one' , label:'H1'} ,
-	{id_:'header-two' , label:'H2'} ,
-	{id_:'header-three' , label:'H3'} ,
-	{id_:'header-four' , label:'H4'} ,
-	{id_:'header-five' , label:'H5'} ,
-	{id_:'header-six' , label:'H6'} ,
-	{id_:'blockquote' , label:'"'} ,
-	{id_:'ordered-list-item' , label:<img src={require('./img/ol-list.png')} />} ,
-	{id_:'unordered-list-item' , label:<img src={require('./img/ul-list.png')} />} ,
-	{id_:'code-block' , label:'<code>'} ,
+	{
+		typeId:'header-one' ,
+		label:'H1'
+	} ,
+	{
+		typeId:'header-two' ,
+		label:'H2'
+	} ,
+	{
+		typeId:'header-three' ,
+		label:'H3'
+	} ,
+	{
+		typeId:'header-four' ,
+		label:'H4'
+	} ,
+	{
+		typeId:'header-five' ,
+		label:'H5'
+	} ,
+	{
+		typeId:'header-six' ,
+		label:'H6'
+	} ,
+	{
+		typeId:'blockquote' ,
+		label:'"'
+	} ,
+	{
+		typeId:'ordered-list-item' ,
+		label:<img src={require('./img/ol-list.png')}/>
+	} ,
+	{
+		typeId:'unordered-list-item' ,
+		label:<img src={require('./img/ul-list.png')}/>
+	} ,
+	{
+		typeId:'code-block' ,
+		label:'<code>'
+	}
 ];
 
 class BlockSettings extends React.Component {
@@ -93,8 +125,8 @@ class BlockSettings extends React.Component {
 
 	render() {
 
-		const {editorState}    = this.props;
-		const selection        = editorState.getSelection();
+		const {editorState} = this.props;
+		const selection = editorState.getSelection();
 		const currentBlockType = editorState.getCurrentContent().getBlockForKey(selection.getStartKey()).getType();
 
 		return (
@@ -103,10 +135,10 @@ class BlockSettings extends React.Component {
 					{
 						BLOCK_TYPES.map(blockType =>
 							<ToolbarIcon
-								key={blockType.id_}
-								id_={blockType.id_}
+								key={blockType.typeId}
+								type={blockType.typeId}
 								label={blockType.label}
-								active={currentBlockType === blockType.id_}
+								active={currentBlockType === blockType.typeId}
 								onToggle={this.onToggle}
 							/>
 						)

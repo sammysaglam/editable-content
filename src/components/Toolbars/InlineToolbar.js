@@ -2,14 +2,34 @@ import React from 'react';
 import ToolbarIcon from './ToolbarIcon'
 
 const INLINE_STYLE = 0;
-const LINK         = 1;
+const LINK = 1;
 
 const TOOLBAR_ITEMS = [
-	{id_:'BOLD' , label:'B' , type:INLINE_STYLE} ,
-	{id_:'ITALIC' , label:'I' , type:INLINE_STYLE} ,
-	{id_:'UNDERLINE' , label:'U' , type:INLINE_STYLE} ,
-	{id_:'STRIKETHROUGH' , label:'abc' , type:INLINE_STYLE} ,
-	{id_:'LINK' , label:'url' , type:LINK}
+	{
+		typeId:'BOLD' ,
+		label:'B' ,
+		styleType:INLINE_STYLE
+	} ,
+	{
+		typeId:'ITALIC' ,
+		label:'I' ,
+		styleType:INLINE_STYLE
+	} ,
+	{
+		typeId:'UNDERLINE' ,
+		label:'U' ,
+		styleType:INLINE_STYLE
+	} ,
+	{
+		typeId:'STRIKETHROUGH' ,
+		label:'abc' ,
+		styleType:INLINE_STYLE
+	} ,
+	{
+		typeId:'LINK' ,
+		label:'url' ,
+		styleType:LINK
+	}
 ];
 
 export default class InlineToolbar extends React.Component {
@@ -32,11 +52,11 @@ export default class InlineToolbar extends React.Component {
 
 	render() {
 		const {editorState} = this.props;
-		const currentStyle  = editorState.getCurrentInlineStyle();
+		const currentStyle = editorState.getCurrentInlineStyle();
 
 		const selectionState = editorState.getSelection();
-		const selectionKey   = selectionState.getStartKey();
-		const contentState   = editorState.getCurrentContent();
+		const selectionKey = selectionState.getStartKey();
+		const contentState = editorState.getCurrentContent();
 
 		// get the block where the cursor is
 		const block = contentState.getBlockForKey(selectionKey);
@@ -47,14 +67,19 @@ export default class InlineToolbar extends React.Component {
 		let entityType = '';
 		if ( entityKey ) {
 			const entityInstance = contentState.getEntity(entityKey);
-			entityType           = entityInstance.getType()
+			entityType = entityInstance.getType()
 		}
 
-		const {position = {top:0 , left:0}} = this.props;
+		const {
+			position = {
+				top:0 ,
+				left:0
+			}
+		} = this.props;
 
 		const styleExp = {
-			top:      position.top ,
-			left:     position.left ,
+			top:position.top ,
+			left:position.left ,
 			transform:'scale(' + (this.props.showToolbar ? '1' : '0') + ')'
 		};
 
@@ -66,11 +91,11 @@ export default class InlineToolbar extends React.Component {
 							{
 								TOOLBAR_ITEMS.map(item =>
 									<ToolbarIcon
-										key={item.id_}
-										id_={item.id_}
-										type={item.type}
+										key={item.typeId}
+										type={item.typeId}
+										styleType={item.styleType}
 										label={item.label}
-										active={currentStyle.has(item.id_) || entityType === item.id_}
+										active={currentStyle.has(item.typeId) || entityType === item.typeId}
 										onToggle={this.onToggle}
 									/>
 								)
@@ -80,5 +105,5 @@ export default class InlineToolbar extends React.Component {
 				)}
 			</div>
 		);
-	} ;
+	}
 }

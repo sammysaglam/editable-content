@@ -1,2 +1,2 @@
-import * as selection from './selection' ;
-export const utils = {selection} ;
+import * as selection from './selection';
+export const utils = {selection};

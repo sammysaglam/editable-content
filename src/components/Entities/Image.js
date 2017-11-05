@@ -7,13 +7,13 @@ export default class Image extends React.Component {
 		super(props);
 		this.state = {align:this.props.align ? this.props.align : 'left'};
 
-		this.alignLeft           = this.alignLeft.bind(this);
-		this.alignCenter         = this.alignCenter.bind(this);
-		this.alignRight          = this.alignRight.bind(this);
+		this.alignLeft = this.alignLeft.bind(this);
+		this.alignCenter = this.alignCenter.bind(this);
+		this.alignRight = this.alignRight.bind(this);
 		this.scaleToOriginalSize = this.scaleToOriginalSize.bind(this);
-		this.scaleOut            = this.scaleOut.bind(this);
-		this.scaleIn             = this.scaleIn.bind(this);
-		this.removeImage         = this.removeImage.bind(this);
+		this.scaleOut = this.scaleOut.bind(this);
+		this.scaleIn = this.scaleIn.bind(this);
+		this.removeImage = this.removeImage.bind(this);
 
 		this.onImageLoaded = this.onImageLoaded.bind(this);
 	}
@@ -49,16 +49,22 @@ export default class Image extends React.Component {
 
 	scaleOut() {
 		if ( this.state.originalWidth ) {
+
+			const INCREMENT = 50;
+
 			this.setState({
-				imageWidth:this.state.imageWidth + 50
+				imageWidth:this.state.imageWidth + INCREMENT
 			})
 		}
 	}
 
 	scaleIn() {
 		if ( this.state.originalWidth ) {
+
+			const DECREMENT = 50;
+
 			this.setState({
-				imageWidth:this.state.imageWidth - 50
+				imageWidth:this.state.imageWidth - DECREMENT
 			})
 		}
 	}
@@ -69,24 +75,24 @@ export default class Image extends React.Component {
 		}
 	}
 
-	onMouseDown(e) {
-		e.preventDefault();
+	onMouseDown(event) {
+		event.preventDefault();
 	}
 
-	onKeyPress(e) {
-		e.preventDefault();
+	onKeyPress(event) {
+		event.preventDefault();
 	}
 
 	onImageLoaded() {
 		this.setState({
 			originalWidth:this.refs.image.width ,
-			imageWidth:   this.refs.image.width
+			imageWidth:this.refs.image.width
 		})
 	}
 
 	render() {
 
-		let alignStyle;
+		let alignStyle = null;
 		switch (this.state.align) {
 			case 'left':
 				alignStyle = {
@@ -102,24 +108,31 @@ export default class Image extends React.Component {
 
 			case 'center':
 				alignStyle = {
-					float:    'none' ,
+					float:'none' ,
 					textAlign:'center' ,
-					width:    '100%'
+					width:'100%'
 				}
 				break;
+
+			default:
+				return null;
 		}
 
-		let imageStyle;
-		if ( this.state.originalWidth ) {
-			imageStyle = {
-				width: this.state.imageWidth ,
-				zIndex:-1
-			}
-		} else {
-			imageStyle = {
-				zIndex:-1
-			}
-		}
+		const imageStyle = (
+
+			this.state.originalWidth ?
+
+				{
+					width:this.state.imageWidth ,
+					zIndex:-1
+				}
+
+				:
+
+				{
+					zIndex:-1
+				}
+		);
 
 		return (
 			<div onMouseDown={this.onMouseDown} className={'image-entity align-' + this.state.align} style={alignStyle}>
@@ -140,4 +153,4 @@ export default class Image extends React.Component {
 			</div>
 		);
 	}
-};
+}
