@@ -654,13 +654,26 @@ class EditableContent extends React.Component {
 				rawContent.entityMap = {};
 			}
 
+			// decode html chars function
+			const decodeHTML = string => {
+				var map = {"gt":">" /* , … */};
+				return string.replace(/&(#(?:x[0-9a-f]+|\d+)|[a-z]+);?/gi, function($0, $1) {
+					if ($1[0] === "#") {
+						return String.fromCharCode($1[1].toLowerCase() === "x" ? parseInt($1.substr(2), 16)  : parseInt($1.substr(1), 10));
+					} else {
+						return map.hasOwnProperty($1) ? map[$1] : $0;
+					}
+				});
+			};
+
 			// process blocks
 			rawContent.blocks.forEach(block => {
 
 				// convert HTML special chars to normal chars - e.g. '&lt;' ==> '<'
-				const tempElement = document.createElement('textarea');
+				/*const tempElement = document.createElement('textarea');
 				tempElement.innerHTML = block.text;
-				block.text = tempElement.value;
+				block.text = tempElement.value;*/
+				block.text = decodeHTML(block.text);
 
 				// make sure depth properties are integers, or else Draft hangs
 				block.depth = parseInt(block.depth);
