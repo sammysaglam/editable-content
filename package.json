@@ -1,12 +1,12 @@
 {
 	"name": "editable-content",
-	"version": "2.0.0",
+	"version": "2.0.2",
 	"author": "Sammy Saglam <sami@saglam.tk>",
 	"license": "MIT",
 	"scripts": {
 		"build-watch": "webpack --progress --watch",
 		"build-dev": "webpack --progress",
-		"build": "webpack -p",
+		"build": "webpack",
 		"lint": "\"./node_modules/.bin/eslint\" src",
 		"lint-fix": "\"./node_modules/.bin/eslint\" src --fix"
 	},

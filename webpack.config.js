@@ -79,6 +79,7 @@ module.exports = [
 
 	// build as umd module
 	{
+		devtool:'source-map' ,
 		entry:{
 			'editable-content':'./src/EditableContent.js'
 		} ,
@@ -95,15 +96,8 @@ module.exports = [
 			'jquery':'jquery'
 		} ,
 		plugins:[
-			new UglifyJSPlugin({
-				uglifyOptions:{
-					compress:true ,
-					output:{
-						comments:false
-					}
-				}
-			})
-		] ,
+			new ImageminPlugin()
+		],
 		module:{
 			rules:[
 				{test:/\.(jpg|png|svg)$/ , loader:'url-loader'} ,
@@ -114,6 +108,7 @@ module.exports = [
 
 	// build redux as var for browser env
 	{
+		devtool:'source-map' ,
 		entry:{
 			'editable-content-redux':'./src/redux/redux.js'
 		} ,
@@ -127,15 +122,8 @@ module.exports = [
 			'draft-js':'Draft'
 		} ,
 		plugins:[
-			new UglifyJSPlugin({
-				uglifyOptions:{
-					compress:true ,
-					output:{
-						comments:false
-					}
-				}
-			})
-		] ,
+			new ImageminPlugin()
+		],
 		module:{
 			rules:[
 				{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/}
@@ -145,6 +133,7 @@ module.exports = [
 
 	// build redux UMD module
 	{
+		devtool:'source-map' ,
 		entry:{
 			'editable-content-redux':'./src/redux/redux.js'
 		} ,
@@ -155,19 +144,12 @@ module.exports = [
 			libraryTarget:'umd'
 		} ,
 		externals:{
-			'draft-js':'draft-js',
+			'draft-js':'draft-js' ,
 			'superagent':'superagent'
 		} ,
 		plugins:[
-			new UglifyJSPlugin({
-				uglifyOptions:{
-					compress:true ,
-					output:{
-						comments:false
-					}
-				}
-			})
-		] ,
+			new ImageminPlugin()
+		],
 		module:{
 			rules:[
 				{test:/\.(js|jsx)$/ , loader:'babel-loader' , exclude:/node_modules/}
