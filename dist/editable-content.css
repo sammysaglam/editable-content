@@ -81,7 +81,8 @@
     z-index: 2;
     box-shadow: 0 0 15px -4px #BBBBBB;
     border-radius: 5px 5px 0 0;
-    color: #000000; }
+    color: #000000;
+    line-height: normal; }
     .editable-content .toolbar img {
       border: none; }
     .editable-content .toolbar ::after {
@@ -203,7 +204,8 @@
     font-family: "Times New Roman" !important;
     font-weight: bold !important;
     color: #AAAAAA;
-    cursor: copy; }
+    cursor: copy;
+    line-height: normal; }
     .editable-content .side-toolbar img {
       border: none; }
     .editable-content .side-toolbar ::after {
