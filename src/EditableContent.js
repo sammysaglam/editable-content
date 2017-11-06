@@ -435,9 +435,15 @@ class EditableContent extends React.Component {
 			return <div className="editable-content">loading...</div>;
 		}
 
+		// classNames
+		const classNames = [
+			'editable-content' ,
+			this.props.disabled === true ? 'disabled' : null
+		].filter(className => className).join(" ")
+
 		// return
 		return (
-			<div className={`editable-content ${this.props.disabled === true ? 'disabled' : ''}`} ref="container">
+			<div className={classNames} ref="container">
 				{
 					this.props.disabled !== true && <InlineToolbar
 						editorState={editorState}

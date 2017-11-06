@@ -643,10 +643,15 @@ var EditableContent = function (_React$Component) {
 				);
 			}
 
+			// classNames
+			var classNames = ['editable-content', this.props.disabled === true ? 'disabled' : null].filter(function (className) {
+				return className;
+			}).join(" ");
+
 			// return
 			return _react2.default.createElement(
 				'div',
-				{ className: 'editable-content ' + (this.props.disabled === true ? 'disabled' : ''), ref: 'container' },
+				{ className: classNames, ref: 'container' },
 				this.props.disabled !== true && _react2.default.createElement(_InlineToolbar2.default, {
 					editorState: editorState,
 					showToolbar: inlineToolbar.show && !sideToolbar.isExpanded,
