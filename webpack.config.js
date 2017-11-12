@@ -91,6 +91,7 @@ module.exports = [
 		} ,
 		externals:{
 			'react':'react' ,
+			'react-dom':'react-dom' ,
 			'draft-js':'draft-js' ,
 			'draft-convert':'draft-convert' ,
 			'jquery':'jquery'

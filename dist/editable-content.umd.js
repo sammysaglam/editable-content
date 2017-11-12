@@ -850,15 +850,12 @@ var EditableContent = function (_React$Component) {
 				}
 
 				// decode html chars function
-				var decodeHTML = function decodeHTML(string) {
-					var map = { "gt": ">" /* , … */ };
-					return string.replace(/&(#(?:x[0-9a-f]+|\d+)|[a-z]+);?/gi, function ($0, $1) {
-						if ($1[0] === "#") {
-							return String.fromCharCode($1[1].toLowerCase() === "x" ? parseInt($1.substr(2), 16) : parseInt($1.substr(1), 10));
-						} else {
-							return map.hasOwnProperty($1) ? map[$1] : $0;
-						}
-					});
+				var decodeHTML = function decodeHTML(text) {
+					var entities = [['amp', '&'], ['apos', '\''], ['#x27', '\''], ['#x2F', '/'], ['#39', '\''], ['#47', '/'], ['lt', '<'], ['gt', '>'], ['nbsp', ' '], ['quot', '"']];
+
+					for (var i = 0, max = entities.length; i < max; ++i) {
+						text = text.replace(new RegExp('&' + entities[i][0] + ';', 'g'), entities[i][1]);
+					}return text;
 				};
 
 				// process blocks
