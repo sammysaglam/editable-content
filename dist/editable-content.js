@@ -2301,8 +2301,6 @@ var EditableContent = function (_React$Component) {
 				return false;
 			}
 
-			console.log(this);
-
 			var linkToolbar = this.state.linkToolbar;
 
 			var TOOLBAR_OFFSET_TOP = -45;
@@ -2402,7 +2400,7 @@ var EditableContent = function (_React$Component) {
 			// classNames
 			var classNames = ['editable-content', this.props.disabled === true ? 'disabled' : null].filter(function (className) {
 				return className;
-			}).join(" ");
+			}).join(' ');
 
 			// return
 			return _react2.default.createElement(
@@ -2624,20 +2622,25 @@ var EditableContent = function (_React$Component) {
 
 				// decode html chars function
 				var decodeHTML = function decodeHTML(text) {
-					var entities = [['amp', '&'], ['apos', '\''], ['#x27', '\''], ['#x2F', '/'], ['#39', '\''], ['#47', '/'], ['lt', '<'], ['gt', '>'], ['nbsp', ' '], ['quot', '"']];
 
-					for (var i = 0, max = entities.length; i < max; ++i) {
-						text = text.replace(new RegExp('&' + entities[i][0] + ';', 'g'), entities[i][1]);
-					}return text;
+					var newText = text;
+
+					/* eslint-disable array-element-newline */
+					var entities = [['amp', '&'], ['apos', '\''], ['#x27', '\''], ['#x2F', '/'], ['#39', '\''], ['#47', '/'], ['lt', '<'], ['gt', '>'], ['nbsp', ' '], ['quot', '"']];
+					/* eslint-enable array-element-newline */
+
+					// eslint-disable-next-line semi-spacing
+					for (var index = 0, max = entities.length; index < max; ++index) {
+						newText = newText.replace(new RegExp('&' + entities[index][0] + ';', 'g'), entities[index][1]);
+					}
+
+					return newText;
 				};
 
 				// process blocks
 				rawContent.blocks.forEach(function (block) {
 
 					// convert HTML special chars to normal chars - e.g. '&lt;' ==> '<'
-					/*const tempElement = document.createElement('textarea');
-     tempElement.innerHTML = block.text;
-     block.text = tempElement.value;*/
 					block.text = decodeHTML(block.text);
 
 					// make sure depth properties are integers, or else Draft hangs

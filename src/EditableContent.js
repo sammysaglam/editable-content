@@ -356,8 +356,6 @@ class EditableContent extends React.Component {
 			return false;
 		}
 
-		console.log(this);
-
 		const {linkToolbar} = this.state;
 		const TOOLBAR_OFFSET_TOP = -45;
 
@@ -441,7 +439,7 @@ class EditableContent extends React.Component {
 		const classNames = [
 			'editable-content' ,
 			this.props.disabled === true ? 'disabled' : null
-		].filter(className => className).join(" ");
+		].filter(className => className).join(' ');
 
 		// return
 		return (
@@ -672,7 +670,11 @@ class EditableContent extends React.Component {
 
 			// decode html chars function
 			const decodeHTML = text => {
-				var entities = [
+
+				let newText = text;
+
+				/* eslint-disable array-element-newline */
+				const entities = [
 					['amp' , '&'] ,
 					['apos' , '\''] ,
 					['#x27' , '\''] ,
@@ -684,20 +686,20 @@ class EditableContent extends React.Component {
 					['nbsp' , ' '] ,
 					['quot' , '"']
 				];
+				/* eslint-enable array-element-newline */
 
-				for ( var i = 0 , max = entities.length ; i < max ; ++i )
-					text = text.replace(new RegExp('&' + entities[i][0] + ';' , 'g') , entities[i][1]);
+				// eslint-disable-next-line semi-spacing
+				for ( let index = 0 , max = entities.length ; index < max ; ++index ) {
+					newText = newText.replace(new RegExp('&' + entities[index][0] + ';' , 'g') , entities[index][1]);
+				}
 
-				return text;
-			}
+				return newText;
+			};
 
 			// process blocks
 			rawContent.blocks.forEach(block => {
 
 				// convert HTML special chars to normal chars - e.g. '&lt;' ==> '<'
-				/*const tempElement = document.createElement('textarea');
-				tempElement.innerHTML = block.text;
-				block.text = tempElement.value;*/
 				block.text = decodeHTML(block.text);
 
 				// make sure depth properties are integers, or else Draft hangs
