@@ -1,4 +1,5 @@
 import React from 'react';
+import {NavLink} from 'react-router-dom';
 
 export default class Link extends React.Component {
 
@@ -43,8 +44,22 @@ export default class Link extends React.Component {
 	}
 
 	render() {
+
+		const {children} = this.props;
+		const {url , target} = this.state;
+		const {onMouseOver , onMouseLeave} = this;
+
+		const isExternalUrl = target === '_blank' || url.startsWith('http');
+
 		return (
-			<a ref="link" href={this.state.url} onMouseOver={this.onMouseOver} onMouseLeave={this.onMouseLeave} target={this.state.target}>{this.props.children}</a>
+			<span ref="link">
+				{
+					isExternalUrl ?
+						<a href={url} onMouseOver={onMouseOver} onMouseLeave={onMouseLeave} target={target}>{children}</a>
+						:
+						<NavLink to={url} onMouseOver={onMouseOver} onMouseLeave={onMouseLeave}>{children}</NavLink>
+				}
+			</span>
 		);
 	}
 

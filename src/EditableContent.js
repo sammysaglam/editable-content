@@ -54,7 +54,7 @@ class EditableContent extends React.Component {
 		const selection = utils.selection.getSelection();
 		if ( !selection.isCollapsed && !editorState.getSelection().isCollapsed() && selection.range ) {
 
-			const offset = utils.selection.getSelectionCoords(this.refs.container , selection.range);
+			const offset = utils.selection.getSelectionCoords(this.container , selection.range);
 
 			this.setState({
 				inlineToolbar:{
@@ -356,12 +356,14 @@ class EditableContent extends React.Component {
 			return false;
 		}
 
+		console.log(this);
+
 		const {linkToolbar} = this.state;
 		const TOOLBAR_OFFSET_TOP = -45;
 
 		if ( linkComponent ) {
 
-			const containerPosition = this.refs.container.getBoundingClientRect();
+			const containerPosition = this.container.getBoundingClientRect();
 			const toolbarPosition = {
 				top:linkPosition.top - containerPosition.top + TOOLBAR_OFFSET_TOP ,
 				left:linkPosition.left - containerPosition.left
@@ -404,7 +406,7 @@ class EditableContent extends React.Component {
 	render() {
 		const {editorState} = this.props;
 		const {selectedBlock , inlineToolbar , sideToolbar , linkToolbar} = this.state;
-		const editor = this.refs.container;
+		const editor = this.container;
 
 		// get selectedBlock, and make sure it is the child of the editor
 		let sideToolbarOffsetTop = 0;
@@ -439,11 +441,13 @@ class EditableContent extends React.Component {
 		const classNames = [
 			'editable-content' ,
 			this.props.disabled === true ? 'disabled' : null
-		].filter(className => className).join(" ")
+		].filter(className => className).join(" ");
 
 		// return
 		return (
-			<div className={classNames} ref="container">
+			<div className={classNames} ref={container => {
+				this.container = container;
+			}}>
 				{
 					this.props.disabled !== true && <InlineToolbar
 						editorState={editorState}
@@ -617,6 +621,18 @@ class EditableContent extends React.Component {
 		return media;
 	}
 
+	componentWillUnmount() {
+		this.props.updateContents(this.removeCompositeDecorators(this.props.editorState));
+	}
+
+	componentDidMount() {
+		this.onChange(this.props.editorState);
+	}
+
+	removeCompositeDecorators(editorState) {
+		return EditorState.set(editorState , {decorator:null});
+	}
+
 	addCompositeDecorators(editorState) {
 
 		if ( editorState.getDecorator() !== null ) {
@@ -657,20 +673,20 @@ class EditableContent extends React.Component {
 			// decode html chars function
 			const decodeHTML = text => {
 				var entities = [
-					['amp', '&'],
-					['apos', '\''],
-					['#x27', '\''],
-					['#x2F', '/'],
-					['#39', '\''],
-					['#47', '/'],
-					['lt', '<'],
-					['gt', '>'],
-					['nbsp', ' '],
-					['quot', '"']
+					['amp' , '&'] ,
+					['apos' , '\''] ,
+					['#x27' , '\''] ,
+					['#x2F' , '/'] ,
+					['#39' , '\''] ,
+					['#47' , '/'] ,
+					['lt' , '<'] ,
+					['gt' , '>'] ,
+					['nbsp' , ' '] ,
+					['quot' , '"']
 				];
 
-				for (var i = 0, max = entities.length; i < max; ++i)
-					text = text.replace(new RegExp('&'+entities[i][0]+';', 'g'), entities[i][1]);
+				for ( var i = 0 , max = entities.length ; i < max ; ++i )
+					text = text.replace(new RegExp('&' + entities[i][0] + ';' , 'g') , entities[i][1]);
 
 				return text;
 			}
