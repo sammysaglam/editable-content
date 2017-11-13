@@ -2390,19 +2390,19 @@ var EditableContent = function (_React$Component) {
 				sideToolbarOffsetTop = blockBounds.top - editorBounds.top - (blockBounds.top - blockBounds.bottom) / 2 - 16;
 			}
 
-			// if editorState not defined then is loading
-			if (!editorState) {
-				return _react2.default.createElement(
-					'div',
-					{ className: 'editable-content' },
-					'loading...'
-				);
-			}
-
 			// classNames
 			var classNames = ['editable-content', disabled === true ? 'disabled' : null].filter(function (className) {
 				return className;
 			}).join(' ');
+
+			// if editorState not defined then is loading
+			if (!editorState) {
+				return _react2.default.createElement(
+					'div',
+					{ className: classNames },
+					'loading...'
+				);
+			}
 
 			// return
 			return _react2.default.createElement(
@@ -2572,12 +2572,16 @@ var EditableContent = function (_React$Component) {
 	}, {
 		key: 'componentWillUnmount',
 		value: function componentWillUnmount() {
-			this.props.updateContents(this.removeCompositeDecorators(this.props.editorState));
+			if (this.props.updateContents) {
+				this.props.updateContents(this.removeCompositeDecorators(this.props.editorState));
+			}
 		}
 	}, {
 		key: 'componentDidMount',
 		value: function componentDidMount() {
-			this.onChange(this.props.editorState);
+			if (this.props.updateContents) {
+				this.onChange(this.props.editorState);
+			}
 		}
 	}, {
 		key: 'removeCompositeDecorators',

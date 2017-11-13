@@ -430,16 +430,16 @@ class EditableContent extends React.Component {
 			sideToolbarOffsetTop = (blockBounds.top - editorBounds.top) - ((blockBounds.top - blockBounds.bottom) / 2) - 16;
 		}
 
-		// if editorState not defined then is loading
-		if ( !editorState ) {
-			return <div className="editable-content">loading...</div>;
-		}
-
 		// classNames
 		const classNames = [
 			'editable-content' ,
 			disabled === true ? 'disabled' : null
 		].filter(className => className).join(' ');
+
+		// if editorState not defined then is loading
+		if ( !editorState ) {
+			return <div className={classNames}>loading...</div>;
+		}
 
 		// return
 		return (
@@ -620,11 +620,15 @@ class EditableContent extends React.Component {
 	}
 
 	componentWillUnmount() {
-		this.props.updateContents(this.removeCompositeDecorators(this.props.editorState));
+		if ( this.props.updateContents ) {
+			this.props.updateContents(this.removeCompositeDecorators(this.props.editorState));
+		}
 	}
 
 	componentDidMount() {
-		this.onChange(this.props.editorState);
+		if ( this.props.updateContents ) {
+			this.onChange(this.props.editorState);
+		}
 	}
 
 	removeCompositeDecorators(editorState) {
