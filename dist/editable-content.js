@@ -2357,7 +2357,9 @@ var EditableContent = function (_React$Component) {
 		value: function render() {
 			var _this6 = this;
 
-			var editorState = this.props.editorState;
+			var _props2 = this.props,
+			    editorState = _props2.editorState,
+			    disabled = _props2.disabled;
 			var _state = this.state,
 			    selectedBlock = _state.selectedBlock,
 			    inlineToolbar = _state.inlineToolbar,
@@ -2389,7 +2391,7 @@ var EditableContent = function (_React$Component) {
 			}
 
 			// if editorState not defined then is loading
-			if (!this.props.editorState) {
+			if (!editorState) {
 				return _react2.default.createElement(
 					'div',
 					{ className: 'editable-content' },
@@ -2398,7 +2400,7 @@ var EditableContent = function (_React$Component) {
 			}
 
 			// classNames
-			var classNames = ['editable-content', this.props.disabled === true ? 'disabled' : null].filter(function (className) {
+			var classNames = ['editable-content', disabled === true ? 'disabled' : null].filter(function (className) {
 				return className;
 			}).join(' ');
 
@@ -2408,14 +2410,14 @@ var EditableContent = function (_React$Component) {
 				{ className: classNames, ref: function ref(container) {
 						_this6.container = container;
 					} },
-				this.props.disabled !== true && _react2.default.createElement(_InlineToolbar2.default, {
+				disabled !== true && _react2.default.createElement(_InlineToolbar2.default, {
 					editorState: editorState,
 					showToolbar: inlineToolbar.show && !sideToolbar.isExpanded,
 					toggleStyle: this.toggleStyle,
 					toggleLink: this.toggleLink,
 					position: inlineToolbar.position
 				}),
-				this.props.disabled !== true && selectedBlock ? _react2.default.createElement(_SideToolbar2.default, {
+				disabled !== true && selectedBlock ? _react2.default.createElement(_SideToolbar2.default, {
 					editorState: editorState,
 					position: { top: sideToolbarOffsetTop },
 					toggleBlockType: this.toggleBlockType,
@@ -2424,7 +2426,7 @@ var EditableContent = function (_React$Component) {
 					collapseSideToolbar: this.collapseSideToolbar,
 					isExpanded: sideToolbar.isExpanded
 				}) : null,
-				this.props.disabled !== true && linkToolbar.show && !sideToolbar.isExpanded && !inlineToolbar.show ? _react2.default.createElement(_LinkToolbar2.default, {
+				disabled !== true && linkToolbar.show && !sideToolbar.isExpanded && !inlineToolbar.show ? _react2.default.createElement(_LinkToolbar2.default, {
 					position: linkToolbar.position,
 					linkComponent: linkToolbar.linkComponent,
 					removeLink: this.removeLink,
@@ -2442,10 +2444,10 @@ var EditableContent = function (_React$Component) {
 					handlePastedText: this.handlePastedText,
 					onChange: this.onChange,
 					onTab: this.onTab,
-					readOnly: this.props.disabled === true,
+					readOnly: disabled === true,
 					handleKeyCommand: this.handleKeyCommand,
 					ref: 'editor',
-					placeholder: this.props.disabled ? '' : 'Enter some text...'
+					placeholder: disabled ? '' : 'Enter some text...'
 				})
 			);
 		}

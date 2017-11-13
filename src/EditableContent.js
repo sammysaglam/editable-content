@@ -402,7 +402,7 @@ class EditableContent extends React.Component {
 	}
 
 	render() {
-		const {editorState} = this.props;
+		const {editorState , disabled} = this.props;
 		const {selectedBlock , inlineToolbar , sideToolbar , linkToolbar} = this.state;
 		const editor = this.container;
 
@@ -431,14 +431,14 @@ class EditableContent extends React.Component {
 		}
 
 		// if editorState not defined then is loading
-		if ( !this.props.editorState ) {
+		if ( !editorState ) {
 			return <div className="editable-content">loading...</div>;
 		}
 
 		// classNames
 		const classNames = [
 			'editable-content' ,
-			this.props.disabled === true ? 'disabled' : null
+			disabled === true ? 'disabled' : null
 		].filter(className => className).join(' ');
 
 		// return
@@ -447,7 +447,7 @@ class EditableContent extends React.Component {
 				this.container = container;
 			}}>
 				{
-					this.props.disabled !== true && <InlineToolbar
+					disabled !== true && <InlineToolbar
 						editorState={editorState}
 						showToolbar={inlineToolbar.show && !sideToolbar.isExpanded}
 						toggleStyle={this.toggleStyle}
@@ -456,7 +456,7 @@ class EditableContent extends React.Component {
 					/>
 				}
 				{
-					this.props.disabled !== true && selectedBlock ?
+					disabled !== true && selectedBlock ?
 
 						<SideToolbar
 							editorState={editorState}
@@ -473,7 +473,7 @@ class EditableContent extends React.Component {
 						null
 				}
 				{
-					this.props.disabled !== true && linkToolbar.show && !sideToolbar.isExpanded && !inlineToolbar.show ?
+					disabled !== true && linkToolbar.show && !sideToolbar.isExpanded && !inlineToolbar.show ?
 
 						<LinkToolbar
 							position={linkToolbar.position}
@@ -496,10 +496,10 @@ class EditableContent extends React.Component {
 					handlePastedText={this.handlePastedText}
 					onChange={this.onChange}
 					onTab={this.onTab}
-					readOnly={this.props.disabled === true}
+					readOnly={disabled === true}
 					handleKeyCommand={this.handleKeyCommand}
 					ref="editor"
-					placeholder={this.props.disabled ? '' : 'Enter some text...'}
+					placeholder={disabled ? '' : 'Enter some text...'}
 				/>
 			</div>
 		);
