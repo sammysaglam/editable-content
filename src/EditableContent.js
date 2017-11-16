@@ -402,7 +402,7 @@ class EditableContent extends React.Component {
 	}
 
 	render() {
-		const {editorState , disabled} = this.props;
+		const {editorState , disabled , className} = this.props;
 		const {selectedBlock , inlineToolbar , sideToolbar , linkToolbar} = this.state;
 		const editor = this.container;
 
@@ -433,8 +433,10 @@ class EditableContent extends React.Component {
 		// classNames
 		const classNames = [
 			'editable-content' ,
-			disabled === true ? 'disabled' : null
-		].filter(className => className).join(' ');
+			disabled === true ? 'disabled' : null ,
+			className
+
+		].filter(classNameItem => classNameItem).join(' ');
 
 		// if editorState not defined then is loading
 		if ( !editorState ) {

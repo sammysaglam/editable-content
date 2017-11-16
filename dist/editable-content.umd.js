@@ -2347,7 +2347,8 @@ var EditableContent = function (_React$Component) {
 
 			var _props2 = this.props,
 			    editorState = _props2.editorState,
-			    disabled = _props2.disabled;
+			    disabled = _props2.disabled,
+			    className = _props2.className;
 			var _state = this.state,
 			    selectedBlock = _state.selectedBlock,
 			    inlineToolbar = _state.inlineToolbar,
@@ -2379,8 +2380,8 @@ var EditableContent = function (_React$Component) {
 			}
 
 			// classNames
-			var classNames = ['editable-content', disabled === true ? 'disabled' : null].filter(function (className) {
-				return className;
+			var classNames = ['editable-content', disabled === true ? 'disabled' : null, className].filter(function (classNameItem) {
+				return classNameItem;
 			}).join(' ');
 
 			// if editorState not defined then is loading
