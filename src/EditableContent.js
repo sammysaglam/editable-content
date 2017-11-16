@@ -48,7 +48,7 @@ class EditableContent extends React.Component {
 
 	onChange(editorState) {
 
-		const {updateContents , saveContents} = this.props;
+		const {updateContents , saveContents , disabled} = this.props;
 
 		// is selection is not collapsed, show the inlineToolbar for formatting the selection
 		const selection = utils.selection.getSelection();
@@ -83,7 +83,7 @@ class EditableContent extends React.Component {
 		updateContents(this.addCompositeDecorators(editorState));
 
 		// call save function on change
-		if ( saveContents && newHtmlContent !== oldHtmlContent ) {
+		if ( !disabled && saveContents && newHtmlContent !== oldHtmlContent && editorState !== this.props.editorState ) {
 			saveContents(rawContent , newHtmlContent);
 		}
 

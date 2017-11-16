@@ -1988,7 +1988,8 @@ var EditableContent = function (_React$Component) {
 		value: function onChange(editorState) {
 			var _props = this.props,
 			    updateContents = _props.updateContents,
-			    saveContents = _props.saveContents;
+			    saveContents = _props.saveContents,
+			    disabled = _props.disabled;
 
 			// is selection is not collapsed, show the inlineToolbar for formatting the selection
 
@@ -2023,7 +2024,7 @@ var EditableContent = function (_React$Component) {
 			updateContents(this.addCompositeDecorators(editorState));
 
 			// call save function on change
-			if (saveContents && newHtmlContent !== oldHtmlContent) {
+			if (!disabled && saveContents && newHtmlContent !== oldHtmlContent && editorState !== this.props.editorState) {
 				saveContents(rawContent, newHtmlContent);
 			}
 

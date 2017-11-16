@@ -169,12 +169,12 @@ var redux = function () {
 				return function () {
 
 					// abort old request
-					if (ajaxRequests[editorInstanceId]) {
-						ajaxRequests[editorInstanceId].abort();
+					if (ajaxRequests[ACTIONS.SAVE_CONTENTS + '/' + editorInstanceId]) {
+						ajaxRequests[ACTIONS.SAVE_CONTENTS + '/' + editorInstanceId].abort();
 					}
 
 					// make request
-					ajaxRequests[editorInstanceId] = request.post(apiUrl).withCredentials().type('application/x-www-form-urlencoded').send({
+					ajaxRequests[ACTIONS.SAVE_CONTENTS + '/' + editorInstanceId] = request.post(apiUrl).withCredentials().type('application/x-www-form-urlencoded').send({
 						rawContent: JSON.stringify(rawContent)
 					}).end();
 				};
