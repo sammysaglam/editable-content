@@ -2273,7 +2273,7 @@ var EditableContent = function (_React$Component) {
 		value: function collapseSideToolbar() {
 			var _this4 = this;
 
-			var TIME_TO_HIDE = 200;
+			var TIME_TO_HIDE = 400;
 
 			this.sideToolbarTimeout = setTimeout(function () {
 				_this4.setState({ sideToolbar: { isExpanded: false } });

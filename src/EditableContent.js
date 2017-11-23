@@ -342,7 +342,7 @@ class EditableContent extends React.Component {
 
 	collapseSideToolbar() {
 
-		const TIME_TO_HIDE = 200;
+		const TIME_TO_HIDE = 400;
 
 		this.sideToolbarTimeout = setTimeout(() => {
 			this.setState({sideToolbar:{isExpanded:false}});
