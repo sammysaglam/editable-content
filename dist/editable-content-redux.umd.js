@@ -7,7 +7,7 @@
 		exports["EditableContentRedux"] = factory(require("draft-js"), require("superagent"));
 	else
 		root["EditableContentRedux"] = factory(root["draft-js"], root["superagent"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_4__) {
+})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_4__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
