@@ -1998,6 +1998,11 @@ var EditableContent = function (_React$Component) {
 	_createClass(EditableContent, [{
 		key: 'onChange',
 		value: function onChange(editorState) {
+
+			if (!editorState) {
+				return false;
+			}
+
 			var _props = this.props,
 			    updateContents = _props.updateContents,
 			    saveContents = _props.saveContents,

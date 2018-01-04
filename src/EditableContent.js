@@ -48,6 +48,10 @@ class EditableContent extends React.Component {
 
 	onChange(editorState) {
 
+		if ( !editorState ) {
+			return false;
+		}
+
 		const {updateContents , saveContents , disabled} = this.props;
 
 		// is selection is not collapsed, show the inlineToolbar for formatting the selection
